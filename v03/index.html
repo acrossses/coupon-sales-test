@@ -20,7 +20,7 @@ function normalized(s){return s.trim()}function validateBatch(arr){
 if(!Array.isArray(arr))throw Error('URL一覧が不正です');
 let seen=new Set(db.items.map(x=>normalized(x.url))),batch=new Set(),accepted=[],duplicates=[],invalid=[];
 for(let i=0;i<arr.length;i++){let x=arr[i],url=x&&typeof x.url==='string'?normalized(x.url):'';
-if(!validURL(url)||!x||typeof x.product!=='string'||!x.product.trim()){invalid.push(i+1);continue}
+if(!validURL(url)){invalid.push(i+1);continue}
 if(seen.has(url)||batch.has(url)){duplicates.push(i+1);continue}
 batch.add(url);accepted.push({...x,url,product:x.product.trim()});}
 return {accepted,duplicates,invalid,total:arr.length};}
@@ -33,9 +33,9 @@ $('urlInput').addEventListener('input',clearPending);$('manualProduct').addEvent
 $('check').onclick=()=>{clearPending();let a=parseInput();if(!a.length){$('checkResult').textContent='URLが入力されていません';return}let r=validateBatch(a);let summary=`入力 ${r.total}件／新規 ${r.accepted.length}件／重複 ${r.duplicates.length}件／不正 ${r.invalid.length}件`;
 if(r.duplicates.length)summary+=`\n重複位置：${r.duplicates.slice(0,30).join(', ')}${r.duplicates.length>30?' ほか':''}`;
 if(r.invalid.length)summary+=`\n不正位置：${r.invalid.slice(0,30).join(', ')}${r.invalid.length>30?' ほか':''}`;
-if(!r.invalid.length&&r.accepted.length){pending={rows:a,signature:JSON.stringify(db.items.map(x=>x.url))};$('register').disabled=false;summary+='\n新規URLのみ登録できます。重複は登録しません。'}
+if(!r.invalid.length&&r.accepted.length&&$('manualProduct').value.trim()){pending={rows:a,signature:JSON.stringify(db.items.map(x=>x.url))};$('register').disabled=false;summary+='\n新規URLのみ登録できます。重複は登録しません。'}else if(!r.invalid.length&&r.accepted.length&&!$('manualProduct').value.trim()){summary+='\n登録する場合は商品名を入力して再検査してください。'}
 $('checkResult').textContent=summary;};
-$('register').onclick=()=>{if(!pending)return;try{if(pending.signature!==JSON.stringify(db.items.map(x=>x.url)))throw Error('在庫が変化しました。もう一度検査してください');let r=addItems(pending.rows);$('checkResult').textContent=`登録完了：${r.accepted.length}件／重複除外 ${r.duplicates.length}件`;clearPending();$('urlInput').value='';}catch(e){clearPending();$('checkResult').textContent='登録中止：'+e.message}};
+$('register').onclick=()=>{if(!pending)return;try{if(pending.signature!==JSON.stringify(db.items.map(x=>x.url)))throw Error('在庫が変化しました。もう一度検査してください');if(!$('manualProduct').value.trim())throw Error('商品名を入力してください');let r=addItems(pending.rows);$('checkResult').textContent=`登録完了：${r.accepted.length}件／重複除外 ${r.duplicates.length}件`;clearPending();$('urlInput').value='';}catch(e){clearPending();$('checkResult').textContent='登録中止：'+e.message}};
 $('clearInput').onclick=()=>{$('urlInput').value='';$('manualProduct').value='';$('checkResult').textContent='入力を消去しました';clearPending()};
 $('file').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;let j=JSON.parse(await f.text());if(j.schema!=='coupon-url-v04'||!Array.isArray(j.items))throw Error('v0.4形式のJSONではありません');addItems(j.items)}catch(e){msg('取り込み失敗：'+e.message)}finally{e.target.value=''}};
 $('reserve').onclick=()=>{let label=$('deal').value.trim(),product=$('product').value,n=Number($('qty').value);if(!label||!product||!Number.isInteger(n)||n<1||n>100){alert('取引識別名・商品・本数を確認してください');return}if(db.deals.some(x=>x.label===label)){alert('同じ取引識別名があります');return}let a=db.items.filter(x=>group(x)===product&&free(x)).slice(0,n);if(a.length<n){alert('利用可能なURLが不足しています');return}let id='d'+Date.now()+'_'+Math.random().toString(36).slice(2,8);for(let x of a){x.status='reserved';x.dealId=id}db.deals.push({id,label,product,status:'reserved',createdAt:now()});save();draw();msg(`${label} に ${n}件確保しました`)};
