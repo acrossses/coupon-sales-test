@@ -21,8 +21,32 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 .deal-entry button{min-height:39px;padding:7px 9px}
 .warn{padding:9px;font-size:11px;line-height:1.5}
 @media(max-width:360px){.metric .metric-value{font-size:22px}.metric .metric-label{font-size:10px}.stock-count{font-size:21px}}
-.chunk-entry{padding:10px;margin:9px 0;border:1px solid #dce5e8;border-radius:10px;background:#f9fbfc}.chunk-entry .buttons{margin-top:7px}</style></head><body>
-<h1>クーポン販売管理 <span class="pill">検証 v0.3 分割送付テスト</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
+.chunk-entry{padding:10px;margin:9px 0;border:1px solid #dce5e8;border-radius:10px;background:#f9fbfc}.chunk-entry .buttons{margin-top:7px}
+/* UI readability revision: no business logic changes */
+body{max-width:680px;background:#f2f5f7;line-height:1.5}
+.card{padding:15px;margin:12px 0;border-radius:16px;border-color:#d9e3e8}
+h2{font-size:17px}
+input,select,textarea{font-size:16px;min-height:48px;border-color:#b9c9d5}
+button,.file{min-height:44px;font-size:14px}
+.delivery-card{border:2px solid #c8ded8}
+.delivery-card>.section-hint{margin:0 0 12px}
+.deal-entry{padding:14px 0 18px}
+.deal-entry>b{font-size:19px;letter-spacing:-.02em}
+.deal-entry>.muted{font-size:13px;margin:6px 0 12px}
+.deal-entry:has(>.state-tag.copied){border-left:4px solid #c88a27;padding-left:11px;background:#fffcf6;border-radius:4px 12px 12px 4px}
+.deal-entry:has(>.state-tag:not(.sent):not(.copied)){border-left:4px solid #167468;padding-left:11px;background:#f6fbf9;border-radius:4px 12px 12px 4px}
+.deal-entry:has(>.state-tag.sent){opacity:.78}
+.chunk-entry{background:#f6f9fb;border:1px solid #d7e3e9;padding:12px;margin:10px 0;border-radius:12px}
+.chunk-entry>b{font-size:16px}
+.chunk-entry .state-tag{margin-left:5px}
+.chunk-entry .buttons{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.65fr);gap:8px;margin-top:11px!important}
+.chunk-entry .buttons button{min-height:46px;padding:8px 7px;font-size:13px}
+.chunk-entry .buttons button[data-action=sent]{grid-column:1/-1;font-weight:800;font-size:14px}
+.chunk-entry .buttons button[data-action=copy]:not(:disabled){border-color:#117568;background:#e8f5f0;color:#075f52;font-weight:800}
+.chunk-entry .buttons button[data-action=sent]:not(:disabled){background:#116f62;color:white}
+@media(max-width:370px){.chunk-entry .buttons button{font-size:12px}}
+</style></head><body>
+<h1>クーポン販売管理 <span class="pill">検証 v0.3 UI改善テスト</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
 <div class="card"><h2>① 在庫を取り込む</h2><p class="muted">v0.4の「JSONバックアップ」で出力した <code>coupon-url-v04</code> 形式を読み込みます。既存の記録は消さず、URLが一致するものは追加しません。</p><label class="file primary">JSONファイルを選択<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p><div class="buttons"><button id="export">管理データをバックアップ</button><label class="file">v0.2/v0.3バックアップを復元<input id="restore" type="file" accept=".json,application/json"></label></div><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版は独立した検証用です。実取引には使わず、ダミーURLで確認してください。v0.2の保存領域には触れません。v0.3は別の検証用保存領域を使用します。</p></div>
 <div class="card"><h2>② URL重複チェック・登録</h2>
 <p class="muted">URLを1行に1件ずつ貼り付けます。判定はSafari内だけで実行し、外部に送信しません。入力内容は画面を離れると破棄されます。</p>
@@ -34,7 +58,7 @@ https://example.com/test-002"></textarea></label>
 </div>
 <div class="card"><h2>③ 在庫一覧</h2><p class="section-hint">利用可能なURL数を大きく表示します。</p><div id="stock">在庫なし</div></div>
 <div class="card"><h2>④ 取引用に確保する</h2><label>取引識別名（氏名・住所などは入力しない）<input id="deal" placeholder="例：テスト取引001" maxlength="80"></label><label>商品<select id="product"></select></label><label>本数<input id="qty" type="number" min="1" max="100" value="1"></label><button class="primary" id="reserve">未使用URLを一時確保</button><p class="muted">確保済み・送付済みURLは選ばれません。</p></div>
-<div class="card"><h2>⑤ 送付管理</h2><div id="deals">取引なし</div></div>
+<div class="card delivery-card"><h2>⑤ 送付管理</h2><p class="section-hint">送付作業中の取引を優先して確認できます。</p><div id="deals">取引なし</div></div>
 <div class="card"><h2>⑥ テスト用</h2><p class="muted">実在のクーポンを使わず、画面の操作を試せます。</p><div class="buttons"><button id="sample">ダミーURLを3件追加</button><button id="reset" class="danger">全テストデータを初期化</button></div></div>
 <script>
 (()=>{'use strict';const KEY='coupon_sales_trial_v03';const $=id=>document.getElementById(id);let db={items:[],deals:[]};let pending=null;const now=()=>new Date().toISOString();const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function msg(s){$('status').textContent=s}function validURL(s){try{let u=new URL(s);return ['http:','https:'].includes(u.protocol)}catch{return false}}function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.items)&&Array.isArray(x.deals))db=x}catch(e){msg('保存データ読込失敗：'+e.message)}}function save(){localStorage.setItem(KEY,JSON.stringify(db));}function group(x){return x.product||'未分類'}function free(x){return !x.status||x.status==='available'}function draw(){let groups=new Map();for(let x of db.items){let k=group(x),g=groups.get(k)||{total:0,available:0,reserved:0,sent:0};g.total++;g[free(x)?'available':x.status]++;groups.set(k,g)}$('stock').innerHTML=groups.size?[...groups].map(([k,g])=>`<div class="stock-entry"><div class="row"><div class="stock-name">${esc(k)}</div><div class="stock-count">${g.available}<small> 件 利用可</small></div></div><div class="stock-meta">総数 ${g.total}件 ／ 確保中 ${g.reserved}件 ／ 送付済 ${g.sent}件</div></div>`).join(''):'在庫なし';let old=$('product').value;$('product').innerHTML=[...groups].map(([k,g])=>`<option value="${esc(k)}">${esc(k)}（利用可 ${g.available}）</option>`).join('');if(groups.has(old))$('product').value=old; $('deals').innerHTML=db.deals.length?db.deals.slice().reverse().map(d=>{let its=db.items.filter(x=>x.dealId===d.id);let chunks=parts(d,its);let done=chunks.filter(c=>c.sentAt).length;let locked=chunks.some(c=>c.copiedAt)||!!d.copiedAt;let sent=d.status==='sent';return `<div class="deal-entry"><b>${esc(d.label)}</b> <span class="state-tag ${sent?'sent':locked?'copied':''}">${sent?'送付済':locked?'送付作業中':'一時確保'}</span><div class="muted">${esc(d.product)} × ${its.length} ／ ${done}/${chunks.length}通送信確認済</div>${chunks.map((c,i)=>`<div class="chunk-entry"><b>${i+1}/${chunks.length}通目・${c.ids.length}件</b> <span class="state-tag ${c.sentAt?'sent':c.copiedAt?'copied':''}">${c.sentAt?'送信確認済':c.copiedAt?'コピー済・要確認':'未コピー'}</span><div class="buttons"><button data-action="inspect" data-id="${esc(d.id)}" data-part="${i}">確認</button><button data-action="copy" data-id="${esc(d.id)}" data-part="${i}" ${c.sentAt?'disabled':''}>${c.copiedAt?'再コピー':'送付文をコピー'}</button><button class="primary" data-action="sent" data-id="${esc(d.id)}" data-part="${i}" ${!c.copiedAt||c.sentAt?'disabled':''}>送信を確認</button></div></div>`).join('')}${sent?'':`<div class="buttons"><button data-action="cancel" data-id="${esc(d.id)}" ${locked?'disabled':''}>未コピーの確保を取り消す</button></div>`}</div>`}).join(''):'取引なし'}
