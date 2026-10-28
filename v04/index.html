@@ -41,6 +41,14 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 .preview-close{width:100%;font-size:16px;min-height:48px}
 .preview-body a.preview-url{color:#0759b5;text-decoration:underline;text-underline-offset:3px;font-weight:650;overflow-wrap:anywhere;word-break:break-word}
 .preview-body a.preview-url:focus-visible{outline:3px solid #8bd1c6;outline-offset:3px}
+/* v0.4 inventory hierarchy refinement: visual presentation only */
+.stock-entry .row{align-items:flex-start;gap:12px}
+.stock-name{font-size:13px;font-weight:600;line-height:1.45;color:#526273;min-width:0;flex:1;overflow-wrap:anywhere}
+.stock-count{font-size:30px;line-height:1;font-weight:850;flex:0 0 auto;text-align:right;color:#086b5c}
+.stock-count small{display:block;margin-top:5px;font-size:11px;line-height:1.2;font-weight:650;color:#526273}
+.stock-meta{font-size:11px;line-height:1.5;color:#667586}
+#product{border:2px solid #88bdb3;background-color:#f5fbf9;font-weight:650;color:#203b38;min-height:48px}
+@media(max-width:360px){.stock-name{font-size:12px}.stock-count{font-size:27px}}
 </style></head><body>
 <h1>クーポン販売管理 <span class="pill">検証 v0.4 復元保護テスト</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
 <div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p></div>
