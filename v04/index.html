@@ -21,9 +21,19 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 .deal-entry button{min-height:39px;padding:7px 9px}
 .warn{padding:9px;font-size:11px;line-height:1.5}
 @media(max-width:360px){.metric .metric-value{font-size:22px}.metric .metric-label{font-size:10px}.stock-count{font-size:21px}}
-.chunk-entry{padding:10px;margin:9px 0;border:1px solid #dce5e8;border-radius:10px;background:#f9fbfc}.chunk-entry .buttons{margin-top:7px}</style></head><body>
+.chunk-entry{padding:10px;margin:9px 0;border:1px solid #dce5e8;border-radius:10px;background:#f9fbfc}.chunk-entry .buttons{margin-top:7px}
+/* v0.4 backup UI simplification: presentation only; original storage keys and restore guards unchanged */
+.import-file{display:block;text-align:center;min-height:0;padding:12px;box-sizing:border-box}
+.backup-actions{display:grid;grid-template-columns:1fr;gap:9px;margin:4px 0 12px}
+.backup-actions button,.backup-actions .file,.recovery button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:46px;height:auto;padding:11px 12px;text-align:center;line-height:1.4;margin:0}
+.backup-actions .file{font-size:13px;font-weight:600}
+.recovery{border-top:1px solid #e5eaf0;margin-top:12px;padding-top:12px}
+.recovery summary{cursor:pointer;font-size:13px;font-weight:700;color:#526579;padding:5px 0}
+.recovery #safetyActions{margin:10px 0 4px}
+</style></head><body>
 <h1>クーポン販売管理 <span class="pill">検証 v0.4 復元保護テスト</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
-<div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体のバックアップは、下の「管理データを復元」から選んでください。</p><label class="file primary">JSONファイルを選択<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p><label>バックアップのファイル名（任意）<input id="backupName" type="text" maxlength="90" placeholder="例：送付前_20261028"></label><div class="buttons"><button id="export">管理データをバックアップ（v0.4）</button><button id="exportShare" type="button">保存先を選んで保存</button><label class="file">管理データを復元（v0.4／旧版）<input id="restore" type="file" accept=".json,application/json"></label></div><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版は独立した検証用です。実取引には使わず、ダミーURLで確認してください。v0.2の保存領域には触れません。v0.4は独立した検証用保存領域を使用します。復元直前のデータを別領域に自動退避します。</p></div>
+<div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p></div>
+<div class="card" id="backupPanel"><h2>バックアップ・復元</h2><p class="muted">管理データ全体を保存・復元します。復元前のデータは自動退避されます。</p><label for="backupName">バックアップのファイル名（任意）</label><input id="backupName" type="text" maxlength="90" placeholder="例：送付前_20261028"><div class="backup-actions"><button id="exportShare" type="button">バックアップを保存</button><label class="file restore-file">バックアップから復元<input id="restore" type="file" accept=".json,application/json"></label></div><details class="recovery"><summary>緊急時のデータ救出</summary><p class="muted">復元直前に自動退避したデータを取り出します。通常の操作では使用しません。</p><div id="safetyActions"></div></details><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版は独立した検証用です。実取引には使わず、ダミーURLで確認してください。v0.2の保存領域には触れません。v0.4は独立した検証用保存領域を使用します。復元直前のデータを別領域に自動退避します。</p></div>
 <div class="card"><h2>② URL重複チェック・登録</h2>
 <p class="muted">URLを1行に1件ずつ貼り付けます。判定はSafari内だけで実行し、外部に送信しません。入力内容は画面を離れると破棄されます。</p>
 <label>商品名（登録時のみ使用）<input id="manualProduct" placeholder="例：テスト商品"></label>
@@ -77,8 +87,8 @@ if(b.dataset.action==='sent'){if(!c.copiedAt||c.sentAt)return;if(idx>0&&!chunks[
 };
 function download(obj,name){let u=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));let a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}function backupFilename(){let label=$('backupName').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/\s+/g,'_').replace(/^\.+|\.+$/g,'').slice(0,80);return 'coupon_sales_v04_'+(label||new Date().toISOString().replace(/[:.]/g,'-'))+'.json'}
 function backupObject(){return {schema:'coupon-sales-trial-v04',exportedAt:now(),...db}}
-$('export').onclick=()=>{download(backupObject(),backupFilename());msg('バックアップをダウンロードしました。保存先はSafariのダウンロード設定から確認できます')};
-$('exportShare').onclick=async()=>{const name=backupFilename(),json=JSON.stringify(backupObject(),null,2);const file=new File([json],name,{type:'application/json'});try{if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[file]})){msg('この環境では保存先選択に対応していません。通常のバックアップを使用してください');return}await navigator.share({files:[file]});msg('共有画面を開きました。「ファイルに保存」を選んだ場合は保存先を確認してください')}catch(err){if(err.name==='AbortError'){msg('保存先選択をキャンセルしました')}else{msg('保存先選択に失敗しました。通常のバックアップを使用してください：'+err.message)}}};
+
+$('exportShare').onclick=async()=>{const name=backupFilename(),json=JSON.stringify(backupObject(),null,2);const file=new File([json],name,{type:'application/json'});try{if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[file]})){download(backupObject(),name);msg('共有機能に非対応のため通常のダウンロードで保存しました。Safariのダウンロード先を確認してください');return}await navigator.share({files:[file]});msg('共有画面を開きました。「ファイルに保存」を選んだ場合は保存先を確認してください')}catch(err){if(err.name==='AbortError'){msg('保存先選択をキャンセルしました')}else{msg('保存先選択に失敗しました。再度お試しください：'+err.message)}}};
 $('restore').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;let j=JSON.parse(await f.text());if(!['coupon-sales-trial-v02','coupon-sales-trial-v03','coupon-sales-trial-v04'].includes(j.schema)||!Array.isArray(j.items)||!Array.isArray(j.deals))throw Error('管理ツールのバックアップ形式ではありません');if(!j.items.every(x=>x&&typeof x.url==='string'&&validURL(x.url)&&typeof x.product==='string')||new Set(j.items.map(x=>normalized(x.url))).size!==j.items.length)throw Error('復元ファイルに不正URLまたは重複URLがあります');
 let existing=new Map(db.items.map(x=>[normalized(x.url),x]));let rollback=[];
 for(let x of j.items){let old=existing.get(normalized(x.url));if(old&&((old.status==='sent'&&x.status!=='sent')||(old.status==='reserved'&&x.status==='available')||(old.copiedAt&&x.status==='available')))rollback.push(x.url)}
@@ -93,7 +103,7 @@ let next={items:j.items,deals:j.deals};
 try{localStorage.setItem(KEY,JSON.stringify(next));if(localStorage.getItem(KEY)!==JSON.stringify(next))throw Error('保存結果の検証に失敗')}catch(err){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}throw Error('復元データの保存に失敗しました。安全退避は保持しています：'+err.message)}
 db=next;clearPending();draw();msg('管理データを復元しました（復元前データは安全領域に退避済み）')}catch(e){msg('復元失敗：'+e.message)}finally{e.target.value=''}};
 const safetyBtn=document.createElement('button');safetyBtn.textContent='復元前の安全退避をダウンロード';safetyBtn.type='button';safetyBtn.onclick=()=>{try{let raw=localStorage.getItem(SAFETY_KEY);if(!raw)throw Error('退避データがありません');let snap=JSON.parse(raw);if(snap.schema!=='coupon-sales-trial-v04-safety'||!Array.isArray(snap.data?.items)||!Array.isArray(snap.data?.deals))throw Error('退避データが不正です');download({schema:'coupon-sales-trial-v04',exportedAt:snap.savedAt,...snap.data},'coupon_sales_v04_pre_restore_safety.json');msg('復元前の退避データをダウンロードしました')}catch(err){msg('安全退避の取得失敗：'+err.message)}};
-$('export').parentElement.append(safetyBtn);
+$('safetyActions').append(safetyBtn);
 $('sample').onclick=()=>addItems([1,2,3].map(i=>({url:`https://example.com/test-coupon-${i}`,product:'テスト商品'})));$('reset').onclick=()=>{if(!confirm('この試作ページ内の全データを削除します。よろしいですか？'))return;db={items:[],deals:[]};save();draw();msg('初期化しました')};load();draw();
 })();
 </script></body></html>
