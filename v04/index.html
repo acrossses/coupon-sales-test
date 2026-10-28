@@ -81,6 +81,10 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 #deals .deal-entry>.buttons{justify-content:center;margin-top:12px!important}
 #deals .deal-entry>.buttons button{max-width:100%;white-space:normal}
 @media(max-width:360px){#deals .deal-entry>b{font-size:17px}#deals .chunk-entry{padding:9px}#deals .chunk-entry .buttons{gap:4px}#deals .chunk-entry .buttons button{font-size:11px;padding:7px 3px}}
+
+/* v0.4 final status readability adjustment: visual only */
+#deals .deal-entry>.state-tag{font-size:15px;font-weight:800;padding:5px 13px;line-height:1.5}
+#deals .chunk-entry>.state-tag{font-size:14px;font-weight:800;padding:5px 11px;line-height:1.45}
 </style></head><body>
 <h1>クーポン販売管理 <span class="pill">検証 v0.4 復元保護テスト</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
 <div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p></div>
