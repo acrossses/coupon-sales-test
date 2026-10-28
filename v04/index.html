@@ -39,6 +39,8 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 .preview-head h2{margin:0;font-size:20px}
 .preview-body{font-size:17px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;-webkit-user-select:text;background:#f5f7fa;border:1px solid #dfe5eb;border-radius:10px;padding:15px;margin:12px 0 15px;color:#23313c}
 .preview-close{width:100%;font-size:16px;min-height:48px}
+.preview-body a.preview-url{color:#0759b5;text-decoration:underline;text-underline-offset:3px;font-weight:650;overflow-wrap:anywhere;word-break:break-word}
+.preview-body a.preview-url:focus-visible{outline:3px solid #8bd1c6;outline-offset:3px}
 </style></head><body>
 <h1>クーポン販売管理 <span class="pill">検証 v0.4 復元保護テスト</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
 <div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p></div>
@@ -90,9 +92,29 @@ $('file').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;let j=JSON
 $('reserve').onclick=()=>{let label=$('deal').value.trim(),product=$('product').value,n=Number($('qty').value);if(!label||!product||!Number.isInteger(n)||n<1||n>100){alert('取引識別名・商品・本数を確認してください');return}if(db.deals.some(x=>x.label===label)){alert('同じ取引識別名があります');return}let a=db.items.filter(x=>group(x)===product&&free(x)).slice(0,n);if(a.length<n){alert('利用可能なURLが不足しています');return}let id='d'+Date.now()+'_'+Math.random().toString(36).slice(2,8);for(let x of a){x.status='reserved';x.dealId=id}db.deals.push({id,label,product,status:'reserved',createdAt:now()});save();draw();msg(`${label} に ${n}件確保しました`)};
 function parts(d,its){if(!Array.isArray(d.parts)){d.parts=[];for(let i=0;i<its.length;i+=5)d.parts.push({ids:its.slice(i,i+5).map(x=>x.url),copiedAt:d.copiedAt||null,sentAt:d.status==='sent'?d.sentAt||d.createdAt:null});}return d.parts}
 function sendText(d,part,index,total){let intro=index===0?`お取引ありがとうございます。\n${d.product} ${db.items.filter(x=>x.dealId===d.id).length}点分のURLをご案内します。\n\n`:'';let end=index===total-1?'\n\n以上です。お手数ですが内容をご確認ください。':'';return intro+part.ids.join('\n')+end}
+// Render the existing message as text, except explicit HTTPS URLs as safe, user-activated links.
+// Never parse message content as HTML; opening a link never changes delivery state.
+function renderPreviewText(message){
+ const target=$('previewBody');target.replaceChildren();
+ const pattern=/https:\/\/[^\s<>"']+/g;
+ let offset=0,match;
+ while((match=pattern.exec(message))!==null){
+  const start=match.index,raw=match[0];
+  const url=raw.replace(/[.,;:!?。、，．！？）)】\]]+$/u,'');
+  if(start>offset)target.append(document.createTextNode(message.slice(offset,start)));
+  if(url){
+   const link=document.createElement('a');link.className='preview-url';
+   link.textContent=url;link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+   target.append(link);
+  }
+  target.append(document.createTextNode(raw.slice(url.length)));
+  offset=start+raw.length;
+ }
+ target.append(document.createTextNode(message.slice(offset)));
+}
 $('previewClose').onclick=()=>{$('previewOverlay').hidden=true};
 $('deals').onclick=async e=>{let b=e.target.closest('button[data-action]');if(!b)return;let d=db.deals.find(x=>x.id===b.dataset.id);if(!d)return;let a=db.items.filter(x=>x.dealId===d.id);let chunks=parts(d,a);let idx=Number(b.dataset.part);let c=chunks[idx];if(b.dataset.action==='cancel'){if(d.status==='sent'||d.copiedAt||chunks.some(x=>x.copiedAt||x.sentAt)){alert('コピー済み・送信確認済みの履歴があるため返却できません。');return}if(!confirm('未コピーの確保を取り消して在庫に戻しますか？'))return;for(let x of a){x.status='available';x.dealId=null}db.deals=db.deals.filter(x=>x.id!==d.id);save();draw();return}if(!c)return;
-if(b.dataset.action==='inspect'){$('previewMeta').textContent=d.label+' ／ '+(idx+1)+'/'+chunks.length+'通目';$('previewBody').textContent=sendText(d,c,idx,chunks.length);$('previewOverlay').hidden=false;$('previewClose').focus();return}
+if(b.dataset.action==='inspect'){$('previewMeta').textContent=d.label+' ／ '+(idx+1)+'/'+chunks.length+'通目';renderPreviewText(sendText(d,c,idx,chunks.length));$('previewOverlay').hidden=false;$('previewClose').focus();return}
 if(b.dataset.action==='copy'){if(c.sentAt)return;if(idx>0&&!chunks[idx-1].sentAt){alert('前の通の送信確認を先に済ませてください。');return}let t=sendText(d,c,idx,chunks.length);try{await navigator.clipboard.writeText(t)}catch{let ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:10%;left:5%;width:90%;height:40%;z-index:9999';document.body.append(ta);ta.focus();ta.select();alert('自動コピーできません。表示内容を手動でコピーしてください。');}c.copiedAt=c.copiedAt||now();d.copiedAt=d.copiedAt||c.copiedAt;save();draw();msg(`${idx+1}/${chunks.length}通目をコピーしました。実際に送信後、「送信を確認」を押してください。`);return}
 if(b.dataset.action==='sent'){if(!c.copiedAt||c.sentAt)return;if(idx>0&&!chunks[idx-1].sentAt)return;if(!confirm(`${idx+1}/${chunks.length}通目を取引ナビで実際に送信しましたか？\n確認後はこのURLを再利用できません。`))return;c.sentAt=now();for(let x of a.filter(x=>c.ids.includes(x.url)))x.status='sent';if(chunks.every(x=>x.sentAt)){d.status='sent';d.sentAt=now()}save();draw();msg(`${idx+1}/${chunks.length}通目の送信を確認しました`)}
 };
