@@ -92,9 +92,21 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 #importReview .review-counts{font-size:14px;line-height:1.8}
 #importReview .review-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
 #importReview button{min-height:48px}
+/* v0.5 review refinement: product-by-product visual summary */
+#importReview .review-product{display:grid;gap:8px;margin:11px 0;text-align:left;font-size:inherit}
+#importReview .review-item{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #dae6e7;border-left:5px solid #74aab9;border-radius:10px;background:#fff;padding:11px 12px}
+#importReview .review-item:nth-child(even){border-left-color:#bc96c9;background:#fcfaff}
+#importReview .review-item:nth-child(3n){border-left-color:#c5a66c;background:#fffdf7}
+#importReview .review-item-name{font-size:16px;font-weight:800;line-height:1.45;min-width:0;overflow-wrap:anywhere}
+#importReview .review-item-count{flex:0 0 auto;font-weight:850;font-size:19px;color:#184e55;white-space:nowrap;font-variant-numeric:tabular-nums}
+#importReview .review-kind{font-size:13px;color:#4a6470;font-weight:700}
+#importReview .review-mixed-warning{background:#fff6e5;color:#805319;border:1px solid #e8c88b;border-radius:9px;padding:9px 10px;line-height:1.55;font-size:13px;font-weight:700;text-align:left;margin:9px 0}
+#importReview .review-mixed-warning[hidden]{display:none}
+#importReview .review-counts{font-weight:700}
+@media(max-width:360px){#importReview .review-item-name{font-size:14px}#importReview .review-item-count{font-size:17px}}
 </style></head><body>
 <h1>クーポン販売管理 <span class="pill">検証 v0.5 UI実験・独立保存</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
-<div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p><section id="importReview" hidden aria-label="取り込み前の確認"><strong>登録前に内容を確認</strong><div id="importReviewProducts" class="review-product"></div><div id="importReviewCounts" class="review-counts"></div><p class="muted">確定するまで在庫は変更されません。商品名が違う場合は取り込みを中止し、元のJSONを修正してください。</p><div class="review-actions"><button id="importCancel" type="button">中止する</button><button id="importConfirm" type="button" class="primary">確認して登録</button></div></section></div>
+<div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p><section id="importReview" hidden aria-label="取り込み前の確認"><strong>登録前に内容を確認</strong><div id="importReviewProducts" class="review-product"></div><div id="importReviewCounts" class="review-counts"></div><p id="importMixedWarning" class="review-mixed-warning" hidden>複数の商品が含まれています。商品名と件数をそれぞれ確認してください。</p><p class="muted">確定するまで在庫は変更されません。商品名が違う場合は取り込みを中止し、元のJSONを修正してください。</p><div class="review-actions"><button id="importCancel" type="button">中止する</button><button id="importConfirm" type="button" class="primary">確認して登録</button></div></section></div>
 <div class="card" id="backupPanel"><h2>バックアップ・復元</h2><p class="muted">管理データ全体を保存・復元します。復元前のデータは自動退避されます。</p><label for="backupName">バックアップのファイル名（任意）</label><input id="backupName" type="text" maxlength="90" placeholder="例：送付前_20261028"><div class="backup-actions"><button id="exportShare" type="button">バックアップを保存</button><label class="file restore-file">バックアップから復元<input id="restore" type="file" accept=".json,application/json"></label></div><details class="recovery"><summary>緊急時のデータ救出</summary><p class="muted">復元直前に自動退避したデータを取り出します。通常の操作では使用しません。</p><div id="safetyActions"></div></details><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版はv0.5 UI実験専用です。実取引には使わず、ダミーURLで確認してください。v0.2・v0.3・v0.4の保存領域には触れません。v0.5専用の保存領域を使用します。復元直前のデータを別領域に自動退避します。</p></div>
 <div class="card"><h2>② URL重複チェック・登録</h2>
 <p class="muted">URLを1行に1件ずつ貼り付けます。判定はSafari内だけで実行し、外部に送信しません。入力内容は画面を離れると破棄されます。</p>
@@ -153,7 +165,17 @@ $('file').onchange=async e=>{let f=e.target.files[0];cancelImport();try{
  let names=[...new Set(r.accepted.map(x=>x.product))];
  if(!r.accepted.length){msg('新規登録0件（重複 '+r.duplicates.length+'件）。在庫は変更していません。');return}
  importPending={items:j.items,signature:JSON.stringify(db.items.map(x=>x.url))};
- $('importReviewProducts').textContent=names.length===1?names[0]:names.length+'種類：'+names.join(' ／ ');
+ // Display each distinct product and its accepted (new) URL count, without parsing names as HTML.
+ const counts=new Map();for(const x of r.accepted)counts.set(x.product,(counts.get(x.product)||0)+1);
+ const products=$('importReviewProducts');products.replaceChildren();
+ const kind=document.createElement('div');kind.className='review-kind';kind.textContent=counts.size+'種類の商品・登録予定の内訳';products.append(kind);
+ for(const [name,count] of counts){
+  const item=document.createElement('div');item.className='review-item';
+  const title=document.createElement('span');title.className='review-item-name';title.textContent=name;
+  const num=document.createElement('span');num.className='review-item-count';num.textContent=count+'件';
+  item.append(title,num);products.append(item);
+ }
+ $('importMixedWarning').hidden=counts.size<2;
  $('importReviewCounts').textContent='入力 '+r.total+'件 ／ 新規 '+r.accepted.length+'件 ／ 重複 '+r.duplicates.length+'件 ／ 不正 0件';
  $('importReview').hidden=false;
  msg('取り込み内容を確認してください。まだ登録されていません。');
