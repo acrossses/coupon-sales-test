@@ -85,9 +85,16 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 /* v0.4 final status readability adjustment: visual only */
 #deals .deal-entry>.state-tag{font-size:15px;font-weight:800;padding:5px 13px;line-height:1.5}
 #deals .chunk-entry>.state-tag{font-size:14px;font-weight:800;padding:5px 11px;line-height:1.45}
+/* v0.5 import review: no inventory mutation before explicit confirmation */
+#importReview{margin-top:12px;border:2px solid #8bbdb3;border-radius:12px;padding:13px;background:#f5fbf9;text-align:center}
+#importReview[hidden]{display:none}
+#importReview .review-product{font-size:19px;font-weight:800;overflow-wrap:anywhere;margin:8px 0}
+#importReview .review-counts{font-size:14px;line-height:1.8}
+#importReview .review-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+#importReview button{min-height:48px}
 </style></head><body>
 <h1>クーポン販売管理 <span class="pill">検証 v0.5 UI実験・独立保存</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
-<div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p></div>
+<div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p><section id="importReview" hidden aria-label="取り込み前の確認"><strong>登録前に内容を確認</strong><div id="importReviewProducts" class="review-product"></div><div id="importReviewCounts" class="review-counts"></div><p class="muted">確定するまで在庫は変更されません。商品名が違う場合は取り込みを中止し、元のJSONを修正してください。</p><div class="review-actions"><button id="importCancel" type="button">中止する</button><button id="importConfirm" type="button" class="primary">確認して登録</button></div></section></div>
 <div class="card" id="backupPanel"><h2>バックアップ・復元</h2><p class="muted">管理データ全体を保存・復元します。復元前のデータは自動退避されます。</p><label for="backupName">バックアップのファイル名（任意）</label><input id="backupName" type="text" maxlength="90" placeholder="例：送付前_20261028"><div class="backup-actions"><button id="exportShare" type="button">バックアップを保存</button><label class="file restore-file">バックアップから復元<input id="restore" type="file" accept=".json,application/json"></label></div><details class="recovery"><summary>緊急時のデータ救出</summary><p class="muted">復元直前に自動退避したデータを取り出します。通常の操作では使用しません。</p><div id="safetyActions"></div></details><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版はv0.5 UI実験専用です。実取引には使わず、ダミーURLで確認してください。v0.2・v0.3・v0.4の保存領域には触れません。v0.5専用の保存領域を使用します。復元直前のデータを別領域に自動退避します。</p></div>
 <div class="card"><h2>② URL重複チェック・登録</h2>
 <p class="muted">URLを1行に1件ずつ貼り付けます。判定はSafari内だけで実行し、外部に送信しません。入力内容は画面を離れると破棄されます。</p>
@@ -132,7 +139,30 @@ else {note='登録する場合は商品名を入力して再検査してくだ�
 renderCheckResult(r,note,tone);};
 $('register').onclick=()=>{if(!pending)return;try{if(pending.signature!==JSON.stringify(db.items.map(x=>x.url)))throw Error('在庫が変化しました。もう一度検査してください');if(!$('manualProduct').value.trim())throw Error('商品名を入力してください');let r=addItems(pending.rows);renderCheckResult(r,`登録完了：${r.accepted.length}件／重複除外 ${r.duplicates.length}件`,'success');clearPending();$('registerReason').textContent='登録が完了しました。';$('urlInput').value='';}catch(e){clearPending();$('checkResult').innerHTML='<div class="result-note warning">'+esc('登録中止：'+e.message)+'</div>'}};
 $('clearInput').onclick=()=>{$('urlInput').value='';$('manualProduct').value='';$('checkResult').innerHTML='<div class="result-note">入力を消去しました。</div>';clearPending()};
-$('file').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;let j=JSON.parse(await f.text());if(j.schema!=='coupon-url-v04'||!Array.isArray(j.items))throw Error('v0.4形式のJSONではありません');addItems(j.items)}catch(e){msg('取り込み失敗：'+e.message)}finally{e.target.value=''}};
+// Preview the entire import before any write. The existing addItems() remains the sole commit path.
+let importPending=null;
+function cancelImport(){importPending=null;$('importReview').hidden=true;$('file').value=''}
+$('importCancel').onclick=()=>{cancelImport();msg('取り込みを中止しました。在庫は変更されていません。')};
+$('file').onchange=async e=>{let f=e.target.files[0];cancelImport();try{
+ if(!f)return;
+ let j=JSON.parse(await f.text());
+ if(j.schema!=='coupon-url-v04'||!Array.isArray(j.items))throw Error('v0.4形式のJSONではありません');
+ let r=validateBatch(j.items);
+ if(r.invalid.length)throw Error('不正なURLが'+r.invalid.length+'件あります。登録しません');
+ if(r.accepted.some(x=>!x.product))throw Error('商品名が空欄のURLがあります。登録しません');
+ let names=[...new Set(r.accepted.map(x=>x.product))];
+ if(!r.accepted.length){msg('新規登録0件（重複 '+r.duplicates.length+'件）。在庫は変更していません。');return}
+ importPending={items:j.items,signature:JSON.stringify(db.items.map(x=>x.url))};
+ $('importReviewProducts').textContent=names.length===1?names[0]:names.length+'種類：'+names.join(' ／ ');
+ $('importReviewCounts').textContent='入力 '+r.total+'件 ／ 新規 '+r.accepted.length+'件 ／ 重複 '+r.duplicates.length+'件 ／ 不正 0件';
+ $('importReview').hidden=false;
+ msg('取り込み内容を確認してください。まだ登録されていません。');
+ }catch(err){cancelImport();msg('取り込み失敗：'+err.message)}finally{e.target.value=''}};
+$('importConfirm').onclick=()=>{if(!importPending)return;try{
+ if(importPending.signature!==JSON.stringify(db.items.map(x=>x.url)))throw Error('確認中に在庫が変化しました。再度読み込んでください');
+ let r=addItems(importPending.items);
+ cancelImport();msg('確認後に登録完了：新規 '+r.accepted.length+'件／重複 '+r.duplicates.length+'件');
+ }catch(err){cancelImport();msg('登録中止：'+err.message)}};
 $('reserve').onclick=()=>{let label=$('deal').value.trim(),product=$('product').value,n=Number($('qty').value);if(!label||!product||!Number.isInteger(n)||n<1||n>100){alert('取引識別名・商品・本数を確認してください');return}if(db.deals.some(x=>x.label===label)){alert('同じ取引識別名があります');return}let a=db.items.filter(x=>group(x)===product&&free(x)).slice(0,n);if(a.length<n){alert('利用可能なURLが不足しています');return}let id='d'+Date.now()+'_'+Math.random().toString(36).slice(2,8);for(let x of a){x.status='reserved';x.dealId=id}db.deals.push({id,label,product,status:'reserved',createdAt:now()});save();draw();msg(`${label} に ${n}件確保しました`)};
 function parts(d,its){if(!Array.isArray(d.parts)){d.parts=[];for(let i=0;i<its.length;i+=5)d.parts.push({ids:its.slice(i,i+5).map(x=>x.url),copiedAt:d.copiedAt||null,sentAt:d.status==='sent'?d.sentAt||d.createdAt:null});}return d.parts}
 function sendText(d,part,index,total){let intro=index===0?`お取引ありがとうございます。\n${d.product} ${db.items.filter(x=>x.dealId===d.id).length}点分のURLをご案内します。\n\n`:'';let end=index===total-1?'\n\n以上です。お手数ですが内容をご確認ください。':'';return intro+part.ids.join('\n')+end}
@@ -178,9 +208,9 @@ const before=JSON.stringify({schema:'coupon-sales-trial-v04-safety',savedAt:now(
 try{localStorage.setItem(SAFETY_KEY,before);if(localStorage.getItem(SAFETY_KEY)!==before)throw Error('退避内容を確認できません')}catch(err){throw Error('復元前の自動退避に失敗しました。元データは変更していません：'+err.message)}
 let next={items:j.items,deals:j.deals};
 try{localStorage.setItem(KEY,JSON.stringify(next));if(localStorage.getItem(KEY)!==JSON.stringify(next))throw Error('保存結果の検証に失敗')}catch(err){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}throw Error('復元データの保存に失敗しました。安全退避は保持しています：'+err.message)}
-db=next;clearPending();draw();msg('管理データを復元しました（復元前データは安全領域に退避済み）')}catch(e){msg('復元失敗：'+e.message)}finally{e.target.value=''}};
+db=next;cancelImport();clearPending();draw();msg('管理データを復元しました（復元前データは安全領域に退避済み）')}catch(e){msg('復元失敗：'+e.message)}finally{e.target.value=''}};
 const safetyBtn=document.createElement('button');safetyBtn.textContent='復元前の安全退避をダウンロード';safetyBtn.type='button';safetyBtn.onclick=()=>{try{let raw=localStorage.getItem(SAFETY_KEY);if(!raw)throw Error('退避データがありません');let snap=JSON.parse(raw);if(snap.schema!=='coupon-sales-trial-v04-safety'||!Array.isArray(snap.data?.items)||!Array.isArray(snap.data?.deals))throw Error('退避データが不正です');download({schema:'coupon-sales-trial-v04',exportedAt:snap.savedAt,...snap.data},'coupon_sales_v05_test_pre_restore_safety.json');msg('復元前の退避データをダウンロードしました')}catch(err){msg('安全退避の取得失敗：'+err.message)}};
 $('safetyActions').append(safetyBtn);
-$('sample').onclick=()=>addItems([1,2,3].map(i=>({url:`https://example.com/test-coupon-${i}`,product:'テスト商品'})));$('reset').onclick=()=>{if(!confirm('この試作ページ内の全データを削除します。よろしいですか？'))return;db={items:[],deals:[]};save();draw();msg('初期化しました')};load();draw();
+$('sample').onclick=()=>addItems([1,2,3].map(i=>({url:`https://example.com/test-coupon-${i}`,product:'テスト商品'})));$('reset').onclick=()=>{if(!confirm('この試作ページ内の全データを削除します。よろしいですか？'))return;db={items:[],deals:[]};cancelImport();save();draw();msg('初期化しました')};load();draw();
 })();
 </script></body></html>
