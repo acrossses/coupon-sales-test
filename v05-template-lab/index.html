@@ -1,0 +1,369 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>クーポン販売管理 検証 v0.5（UI実験・独立保存）</title><style>
+:root{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;color:#23313c;background:#f5f7fa}body{margin:0;padding:16px 14px 45px;max-width:720px;margin:auto}h1{font-size:22px;margin:12px 0 5px}h2{font-size:17px;margin:0 0 12px}.sub{font-size:12px;color:#64748b}.card{background:white;border:1px solid #dfe5eb;border-radius:14px;padding:15px;margin:13px 0;box-shadow:0 2px 8px #14263c09}button,.file{font:inherit;border-radius:9px;border:1px solid #cbd5e1;padding:11px 13px;background:white;color:#23313c;cursor:pointer}button.primary,.file.primary{background:#167468;color:white;border-color:#167468;font-weight:700}button.danger{color:#a02727;border-color:#e3aaaa}button:disabled{opacity:.45}input,select,textarea{font:inherit;box-sizing:border-box;width:100%;padding:11px;border-radius:9px;border:1px solid #cbd5e1;background:#fff;margin:5px 0 12px}textarea{min-height:95px}label{display:block;font-size:13px;font-weight:600}.buttons{display:flex;flex-wrap:wrap;gap:8px}.pill{font-size:12px;background:#e9f4f1;padding:5px 9px;border-radius:30px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #edf0f3;padding:9px 0}.row:last-child{border:0}.muted{color:#65758a;font-size:12px}.warn{background:#fff5e4;border:1px solid #f4d5a2;padding:10px;border-radius:9px;font-size:12px}.ok{color:#147263}#status{white-space:pre-wrap;font-size:13px}#out{min-height:85px;font-size:12px}.file input{display:none}
+/* v0.3 視認性改善：状態と操作の階層を明確化 */
+:root{color-scheme:light}body{padding:16px 14px calc(44px + env(safe-area-inset-bottom));line-height:1.55}h1{font-size:23px;letter-spacing:-.035em}h2{font-size:18px;letter-spacing:-.02em}.sub{font-size:13px}.card{border-radius:16px;padding:17px;margin:14px 0;box-shadow:0 3px 14px #14263c0b}button,.file{min-height:45px;font-size:14px;font-weight:600}button.primary,.file.primary{background:#126c61}button:disabled{opacity:.48;cursor:not-allowed}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #8bd1c6;outline-offset:2px}label{font-size:14px}input,select,textarea{font-size:16px;min-height:46px}textarea{line-height:1.5;min-height:112px}.buttons{gap:9px}.muted{font-size:13px}.row{align-items:center;gap:12px}.stock-name{font-size:15px;font-weight:750;overflow-wrap:anywhere}.stock-count{font-size:25px;line-height:1.1;font-weight:850;color:#126c61;font-variant-numeric:tabular-nums}.stock-count small{font-size:12px;font-weight:650}.stock-meta{margin-top:5px;font-size:12px;color:#5d6b7a}.stock-entry{padding:12px 0;border-bottom:1px solid #edf0f3}.stock-entry:last-child{border-bottom:0}.state-tag{display:inline-block;border-radius:20px;padding:3px 9px;font-size:12px;font-weight:750;background:#e6f1ed;color:#155b51}.state-tag.copied{background:#fff0cf;color:#875300}.state-tag.sent{background:#e9edf2;color:#425466}.deal-entry{padding:13px 0;border-bottom:1px solid #edf0f3}.deal-entry:last-child{border:0}.deal-entry .buttons{margin-top:10px}.deal-entry button{font-size:13px}.deal-entry button[data-action=sent]{background:#126c61}.deal-entry button[data-action=cancel]{color:#9a3b2e;border-color:#e7c7c1}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:13px 0}.metric{background:#f1f5f8;border:1px solid #e2e9ef;border-radius:12px;padding:11px 12px}.metric .metric-label{font-size:12px;font-weight:700;color:#566679}.metric .metric-value{font-size:28px;line-height:1.2;font-weight:850;font-variant-numeric:tabular-nums}.metric.good{background:#eaf6f1;border-color:#c9e6d9;color:#0e6858}.metric.bad{background:#fff0e8;border-color:#f3cbb9;color:#a44620}.metric.warnmetric{background:#fff6df;border-color:#f0dca4;color:#815700}.result-note{font-size:13px;line-height:1.65;padding:11px 12px;border-radius:10px;background:#f2f5f9;color:#35485c;white-space:pre-wrap;overflow-wrap:anywhere}.result-note.warning{background:#fff3e2;color:#774a12}.result-note.success{background:#eaf6f1;color:#155e50}.help-note{font-size:12px;color:#596b7b;margin:7px 0 0}.section-hint{font-size:13px;color:#586b7a;margin-top:-3px}.button-reason{font-size:12px;color:#8b5417;min-height:18px;margin:6px 0 0}@media(min-width:520px){.result-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:380px){.card{padding:13px}.buttons button{flex:1 1 auto}.metric .metric-value{font-size:25px}}@media(prefers-reduced-motion:no-preference){button{transition:background-color .12s,border-color .12s}}
+
+/* v0.3 compact: iPhoneでの縦スクロール削減（機能ロジックは維持） */
+body{padding:10px 12px calc(26px + env(safe-area-inset-bottom));line-height:1.4}
+h1{font-size:20px;margin:7px 0 3px}h2{font-size:16px;margin:0 0 8px}
+.card{padding:12px;margin:10px 0;border-radius:13px;box-shadow:0 2px 8px #14263c08}
+.card p{margin:7px 0}.sub,.muted,.section-hint{font-size:12px}
+label{font-size:13px}input,select,textarea{margin:4px 0 9px;padding:9px 10px;min-height:42px}
+textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size:13px}
+.buttons{gap:6px}.result-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:9px 0}
+.metric{padding:8px 4px;border-radius:9px;text-align:center;min-width:0}
+.metric .metric-label{font-size:11px}.metric .metric-value{font-size:25px}
+.metric .metric-value span{display:block;margin-left:0!important;font-size:10px!important}
+.result-note{padding:9px;font-size:12px}.button-reason{margin:5px 0 0}
+.stock-entry{padding:8px 0}.stock-entry .row{padding:4px 0}
+.stock-count{font-size:23px;white-space:nowrap}.stock-meta{margin-top:3px}
+.deal-entry{padding:10px 0}.deal-entry .buttons{margin-top:6px!important}
+.deal-entry button{min-height:39px;padding:7px 9px}
+.warn{padding:9px;font-size:11px;line-height:1.5}
+@media(max-width:360px){.metric .metric-value{font-size:22px}.metric .metric-label{font-size:10px}.stock-count{font-size:21px}}
+.chunk-entry{padding:10px;margin:9px 0;border:1px solid #dce5e8;border-radius:10px;background:#f9fbfc}.chunk-entry .buttons{margin-top:7px}
+/* v0.4 backup UI simplification: presentation only; original storage keys and restore guards unchanged */
+.import-file{display:block;text-align:center;min-height:0;padding:12px;box-sizing:border-box}
+.backup-actions{display:grid;grid-template-columns:1fr;gap:9px;margin:4px 0 12px}
+.backup-actions button,.backup-actions .file,.recovery button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:46px;height:auto;padding:11px 12px;text-align:center;line-height:1.4;margin:0}
+.backup-actions .file{font-size:13px;font-weight:600}
+.recovery{border-top:1px solid #e5eaf0;margin-top:12px;padding-top:12px}
+.recovery summary{cursor:pointer;font-size:13px;font-weight:700;color:#526579;padding:5px 0}
+.recovery #safetyActions{margin:10px 0 4px}
+
+/* v0.4 mobile-friendly read-only send preview; no changes to inventory/transaction logic */
+.preview-overlay{position:fixed;inset:0;z-index:1000;background:#14263cb8;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
+.preview-overlay[hidden]{display:none}
+.preview-dialog{width:100%;max-width:650px;max-height:calc(100dvh - 28px);overflow:auto;background:#fff;border-radius:16px;padding:18px;box-sizing:border-box;box-shadow:0 12px 35px #0004}
+.preview-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.preview-head h2{margin:0;font-size:20px}
+.preview-body{font-size:17px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;-webkit-user-select:text;background:#f5f7fa;border:1px solid #dfe5eb;border-radius:10px;padding:15px;margin:12px 0 15px;color:#23313c}
+.preview-close{width:100%;font-size:16px;min-height:48px}
+.preview-body a.preview-url{color:#0759b5;text-decoration:underline;text-underline-offset:3px;font-weight:650;overflow-wrap:anywhere;word-break:break-word}
+.preview-body a.preview-url:focus-visible{outline:3px solid #8bd1c6;outline-offset:3px}
+/* v0.4 inventory hierarchy refinement: visual presentation only */
+.stock-entry .row{align-items:flex-start;gap:12px}
+.stock-name{font-size:13px;font-weight:600;line-height:1.45;color:#526273;min-width:0;flex:1;overflow-wrap:anywhere}
+.stock-count{font-size:30px;line-height:1;font-weight:850;flex:0 0 auto;text-align:right;color:#086b5c}
+.stock-count small{display:block;margin-top:5px;font-size:11px;line-height:1.2;font-weight:650;color:#526273}
+.stock-meta{font-size:11px;line-height:1.5;color:#667586}
+#product{border:2px solid #88bdb3;background-color:#f5fbf9;font-weight:650;color:#203b38;min-height:48px}
+@media(max-width:360px){.stock-name{font-size:12px}.stock-count{font-size:27px}}
+
+/* v0.4 inventory grouping: presentation only */
+#stock .stock-entry .row{justify-content:flex-start;align-items:center;gap:12px;flex-wrap:wrap}
+#stock .stock-name{font-size:16px;font-weight:750;color:#23313c;flex:0 1 auto;min-width:0;line-height:1.45}
+#stock .stock-count{display:inline-flex;align-items:baseline;gap:5px;font-size:25px;line-height:1.2;background:#eaf6f1;border-radius:9px;padding:4px 10px;white-space:nowrap}
+#stock .stock-count small{font-size:12px;font-weight:650}
+#stock .stock-meta{margin-top:5px}
+@media(max-width:360px){#stock .stock-name{font-size:15px}#stock .stock-entry .row{gap:8px}}
+
+/* v0.4 inventory center layout trial — presentation only */
+#stock .stock-entry{padding:10px 0 12px}
+#stock .stock-entry .row{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:3px 0 8px}
+#stock .stock-name{width:100%;max-width:100%;font-size:18px;font-weight:800;line-height:1.4;text-align:center;overflow-wrap:anywhere;color:#23313c}
+#stock .stock-count{display:flex;justify-content:center;align-items:baseline;gap:7px;background:none;border-radius:0;padding:0;font-size:32px;font-weight:850;line-height:1.15;color:#086b5c;white-space:nowrap}
+#stock .stock-count small{display:inline;margin:0;font-size:12px;font-weight:650;color:#526273}
+#stock .stock-meta{text-align:center;font-size:12px;line-height:1.5;margin-top:3px;overflow-wrap:anywhere}
+@media(max-width:360px){#stock .stock-name{font-size:16px}#stock .stock-count{font-size:29px}#stock .stock-meta{font-size:11px}}
+
+/* v0.4 send-management visual alignment — CSS only, no behavior changes */
+#deals .deal-entry{padding:16px 0 18px;border-bottom:1px solid #dfe6ec;text-align:center}
+#deals .deal-entry:last-child{border-bottom:0;padding-bottom:4px}
+#deals .deal-entry>b{display:block;font-size:19px;line-height:1.4;font-weight:800;overflow-wrap:anywhere;color:#23313c;margin-bottom:6px}
+#deals .deal-entry>.state-tag{display:inline-block;margin:0 auto 8px}
+#deals .deal-entry>.muted{font-size:14px;line-height:1.55;font-weight:650;overflow-wrap:anywhere;margin:2px auto 12px;max-width:100%}
+#deals .chunk-entry{text-align:left;margin:10px 0;padding:12px;border-radius:12px;background:#f7f9fb;border:1px solid #dce5e8}
+#deals .chunk-entry>b{font-size:15px;line-height:1.6}
+#deals .chunk-entry>.state-tag{vertical-align:middle;margin:3px 0}
+#deals .chunk-entry .buttons{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.35fr) minmax(0,1.2fr);gap:6px;margin-top:10px!important}
+#deals .chunk-entry .buttons button{width:100%;min-width:0;min-height:44px;padding:8px 5px;font-size:12px;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+#deals .deal-entry>.buttons{justify-content:center;margin-top:12px!important}
+#deals .deal-entry>.buttons button{max-width:100%;white-space:normal}
+@media(max-width:360px){#deals .deal-entry>b{font-size:17px}#deals .chunk-entry{padding:9px}#deals .chunk-entry .buttons{gap:4px}#deals .chunk-entry .buttons button{font-size:11px;padding:7px 3px}}
+
+/* v0.4 final status readability adjustment: visual only */
+#deals .deal-entry>.state-tag{font-size:15px;font-weight:800;padding:5px 13px;line-height:1.5}
+#deals .chunk-entry>.state-tag{font-size:14px;font-weight:800;padding:5px 11px;line-height:1.45}
+/* v0.5 import review: no inventory mutation before explicit confirmation */
+#importReview{margin-top:12px;border:2px solid #8bbdb3;border-radius:12px;padding:13px;background:#f5fbf9;text-align:center}
+#importReview[hidden]{display:none}
+#importReview .review-product{font-size:19px;font-weight:800;overflow-wrap:anywhere;margin:8px 0}
+#importReview .review-counts{font-size:14px;line-height:1.8}
+#importReview .review-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+#importReview button{min-height:48px}
+/* v0.5 review refinement: product-by-product visual summary */
+#importReview .review-product{display:grid;gap:8px;margin:11px 0;text-align:left;font-size:inherit}
+#importReview .review-item{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #dae6e7;border-left:5px solid #74aab9;border-radius:10px;background:#fff;padding:11px 12px}
+#importReview .review-item:nth-child(even){border-left-color:#bc96c9;background:#fcfaff}
+#importReview .review-item:nth-child(3n){border-left-color:#c5a66c;background:#fffdf7}
+#importReview .review-item-name{font-size:16px;font-weight:800;line-height:1.45;min-width:0;overflow-wrap:anywhere}
+#importReview .review-item-count{flex:0 0 auto;font-weight:850;font-size:19px;color:#184e55;white-space:nowrap;font-variant-numeric:tabular-nums}
+#importReview .review-kind{font-size:13px;color:#4a6470;font-weight:700}
+#importReview .review-mixed-warning{background:#fff6e5;color:#805319;border:1px solid #e8c88b;border-radius:9px;padding:9px 10px;line-height:1.55;font-size:13px;font-weight:700;text-align:left;margin:9px 0}
+#importReview .review-mixed-warning[hidden]{display:none}
+#importReview .review-counts{font-weight:700}
+@media(max-width:360px){#importReview .review-item-name{font-size:14px}#importReview .review-item-count{font-size:17px}}
+
+/* v0.5 inventory visual separation — CSS only; all storage/transaction logic unchanged */
+#stock{display:flex;flex-direction:column;gap:13px}
+#stock .stock-entry{padding:16px 13px 14px;border:1px solid #e0e7ee;border-radius:15px;background:#f8fcfa;position:relative;overflow:hidden;box-shadow:0 2px 8px #14263c0a}
+#stock .stock-entry::before{content:"";position:absolute;inset:0 auto 0 0;width:7px;background:#7cbfb1}
+#stock .stock-entry.stock-tone-0{background:#f3faf7}#stock .stock-entry.stock-tone-0::before{background:#6cae9f}
+#stock .stock-entry.stock-tone-1{background:#faf5fc}#stock .stock-entry.stock-tone-1::before{background:#b68ac8}
+#stock .stock-entry.stock-tone-2{background:#fdf9ef}#stock .stock-entry.stock-tone-2::before{background:#c8a461}
+#stock .stock-entry.stock-tone-3{background:#f2f8fe}#stock .stock-entry.stock-tone-3::before{background:#7eaad4}
+#stock .stock-entry .row{border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:2px 0 8px}
+#stock .stock-name{width:100%;max-width:100%;font-size:18px;font-weight:800;line-height:1.4;text-align:center;overflow-wrap:anywhere;color:#23313c}
+#stock .stock-count{display:flex;justify-content:center;align-items:baseline;gap:7px;background:none;border-radius:0;padding:0;font-size:33px;font-weight:850;line-height:1.15;color:#086b5c;white-space:nowrap}
+#stock .stock-count small{display:inline;margin:0;font-size:12px;font-weight:650;color:#526273}
+#stock .stock-meta{border-top:1px solid #dfe7ed;padding-top:8px;text-align:center;font-size:12px;line-height:1.5;margin-top:0;overflow-wrap:anywhere}
+@media(max-width:360px){#stock .stock-entry{padding:14px 11px 12px}#stock .stock-name{font-size:16px}#stock .stock-count{font-size:29px}#stock .stock-meta{font-size:11px}}
+
+/* v0.5 quantity status colors: presentation only; product cards retain their own colors */
+#stock .stock-count{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:5px 8px;color:#08735e}
+#stock .stock-count.stock-ok{color:#08735e}
+#stock .stock-count.stock-low{color:#a35c08}
+#stock .stock-count.stock-empty{color:#b73540}
+#stock .stock-count .stock-level{display:inline-block;align-self:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800;line-height:1.5;background:#e3f4ed;color:#14634d;white-space:nowrap}
+#stock .stock-count.stock-low .stock-level{background:#fff0d8;color:#90510a}
+#stock .stock-count.stock-empty .stock-level{background:#ffe7e9;color:#a32d37}
+#stock .stock-count small{color:#536475}
+
+/* v0.5 stock set conversion: read-only calculation on available inventory */
+#stock .set-heading{margin:12px 0 6px;font-size:12px;font-weight:800;color:#36485c;text-align:center}
+#stock .set-heading span{font-size:10px;font-weight:500;color:#6b7788}
+#stock .set-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+#stock .set-cell{display:flex;align-items:baseline;justify-content:center;gap:3px;border:1px solid #d5e6e0;border-radius:9px;padding:7px 2px;background:rgba(255,255,255,.75);color:#166555;font-variant-numeric:tabular-nums;white-space:nowrap}
+#stock .set-cell span{font-size:12px;font-weight:700}
+#stock .set-cell b{font-size:19px;font-weight:850}
+#stock .set-cell small{font-size:9px;font-weight:600}
+#stock .set-cell.set-none{background:rgba(228,232,237,.55);border-color:#e1e5e9;color:#87919c}
+@media(max-width:360px){#stock .set-grid{gap:4px}#stock .set-cell{padding:6px 1px}#stock .set-cell b{font-size:17px}}
+
+/* v0.5 set-count detail: compact remainder and optional quantities; display only */
+#stock .set-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:53px;padding:6px 2px 5px;white-space:normal}
+#stock .set-top{display:flex;align-items:baseline;justify-content:center;gap:3px;white-space:nowrap}
+#stock .set-remainder{font-size:10px;line-height:1.3;font-weight:600;color:#697887;white-space:nowrap}
+#stock .set-cell.set-none .set-remainder{color:#87919c}
+#stock .set-more{margin-top:8px}
+#stock .set-more summary{cursor:pointer;display:block;width:fit-content;margin:auto;border:1px solid #ccdce1;background:rgba(255,255,255,.7);padding:7px 12px;border-radius:9px;color:#415669;font-size:12px;font-weight:750;list-style:none}
+#stock .set-more summary::-webkit-details-marker{display:none}
+#stock .set-more summary::before{content:'＋ ';font-weight:800}
+#stock .set-more[open] summary::before{content:'− '}
+#stock .set-grid-extra{margin-top:7px}
+@media(max-width:360px){#stock .set-remainder{font-size:9px}#stock .set-cell{padding:6px 1px 5px}}
+
+/* v0.5 quick-select: presentation and input only; reservation remains explicit */
+#stock .set-cell{font-family:inherit;cursor:pointer;min-height:68px;width:100%;touch-action:manipulation;transition:border-color .12s,background-color .12s}
+#stock .set-cell:not(:disabled):active{background:#d9efe7}
+#stock .set-cell:not(:disabled):focus-visible{outline:3px solid #167468;outline-offset:2px}
+#stock .set-cell:disabled{cursor:not-allowed;opacity:1;pointer-events:none}
+#reservePanel{scroll-margin-top:14px}
+#reservePanel.quick-select-active{border:2px solid #16806c;box-shadow:0 0 0 3px #16806c1c}
+#reservePanel.quick-select-active #product,#reservePanel.quick-select-active #qty{background:#f0faf6;border:2px solid #16806c}
+.quick-select-note{border:1px solid #a9d7cc;background:#e8f6f1;color:#145d4f;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;margin:3px 0 12px}
+.quick-select-note[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){#stock .set-cell{transition:none}}
+
+/* v0.5 movement indicator: changes recorded only after explicit inventory operations */
+#stock .stock-change{display:table;margin:8px auto 1px;padding:5px 11px;border-radius:9px;font-size:12px;line-height:1.4;font-weight:750;text-align:center}
+#stock .stock-change.in{background:#e7f5ec;color:#156549;border:1px solid #c5e5d2}
+#stock .stock-change.reserve{background:#fff0db;color:#935807;border:1px solid #efd7a8}
+#stock .stock-change.return{background:#e9efff;color:#385a9b;border:1px solid #cbd7f6}
+
+/* template experiment: input-only edits, no URL editing */
+#templatePanel textarea{width:100%;min-height:86px;white-space:pre-wrap}
+#templatePanel .buttons button{flex:1 1 135px}
+.template-sample{margin-top:12px;background:#f5f8fb;border:1px solid #d6e3ec;border-radius:12px;padding:12px}
+.template-sample pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 -apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;margin:10px 0 0}
+</style></head><body>
+<h1>クーポン販売管理 <span class="pill">検証 v0.5 挨拶文実験・独立保存</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
+<div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p><section id="importReview" hidden aria-label="取り込み前の確認"><strong>登録前に内容を確認</strong><div id="importReviewProducts" class="review-product"></div><div id="importReviewCounts" class="review-counts"></div><p id="importMixedWarning" class="review-mixed-warning" hidden>複数の商品が含まれています。商品名と件数をそれぞれ確認してください。</p><p class="muted">確定するまで在庫は変更されません。商品名が違う場合は取り込みを中止し、元のJSONを修正してください。</p><div class="review-actions"><button id="importCancel" type="button">中止する</button><button id="importConfirm" type="button" class="primary">確認して登録</button></div></section></div>
+<div class="card" id="backupPanel"><h2>バックアップ・復元</h2><p class="muted">管理データ全体を保存・復元します。復元前のデータは自動退避されます。</p><label for="backupName">バックアップのファイル名（任意）</label><input id="backupName" type="text" maxlength="90" placeholder="例：送付前_20261028"><div class="backup-actions"><button id="exportShare" type="button">バックアップを保存</button><label class="file restore-file">バックアップから復元<input id="restore" type="file" accept=".json,application/json"></label></div><details class="recovery"><summary>緊急時のデータ救出</summary><p class="muted">復元直前に自動退避したデータを取り出します。通常の操作では使用しません。</p><div id="safetyActions"></div></details><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版はv0.5 挨拶文実験専用です。実取引には使わず、ダミーURLで確認してください。v0.2・v0.3・v0.4の保存領域には触れません。v0.5専用の保存領域を使用します。復元直前のデータを別領域に自動退避します。</p></div>
+<div class="card"><h2>② URL重複チェック・登録</h2>
+<p class="muted">URLを1行に1件ずつ貼り付けます。判定はSafari内だけで実行し、外部に送信しません。入力内容は画面を離れると破棄されます。</p>
+<label>商品名（登録時のみ使用）<input id="manualProduct" placeholder="例：テスト商品"></label>
+<label>検査するURL一覧<textarea id="urlInput" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="https://example.com/test-001
+https://example.com/test-002"></textarea></label>
+<div class="buttons"><button id="check" class="primary">重複・件数を検査</button><button id="register" disabled>検査済みURLを登録</button><button id="clearInput">入力を消去</button></div>
+<div id="checkResult" role="status" aria-live="polite"></div><p id="registerReason" class="button-reason">先にURLを検査してください。</p>
+</div>
+<div class="card"><h2>③ 在庫一覧</h2><p class="section-hint">利用可能数・セット換算と、商品ごとの直近の在庫増減を表示します。送付確認は利用可能数を減らしません。</p><div id="stock">在庫なし</div></div>
+<div class="card" id="reservePanel"><h2>④ 取引用に確保する</h2><p id="quickSelectNote" class="quick-select-note" role="status" aria-live="polite" hidden></p><label>取引識別名（氏名・住所などは入力しない）<input id="deal" placeholder="例：テスト取引001" maxlength="80"></label><label>商品<select id="product"></select></label><label>本数<input id="qty" type="number" min="1" max="100" value="1"></label><button class="primary" id="reserve">未使用URLを一時確保</button><p class="muted">確保済み・送付済みURLは選ばれません。</p></div>
+<div class="card" id="templatePanel"><h2>⑤ 挨拶テンプレート設定（実験）</h2>
+<p class="section-hint">冒頭と末尾の文章だけ編集できます。商品名・数量・URLは自動生成です。<strong>設定変更は新しく確保する取引から適用</strong>します。</p>
+<label for="greetingInput">冒頭の挨拶文</label><textarea id="greetingInput" maxlength="600" rows="3" placeholder="お取引ありがとうございます。"></textarea>
+<label for="closingInput">末尾の挨拶文</label><textarea id="closingInput" maxlength="600" rows="3" placeholder="以上です。お手数ですが内容をご確認ください。"></textarea>
+<div class="buttons"><button id="templatePreview" type="button">サンプル文を確認</button><button id="templateSave" type="button" class="primary">テンプレートを保存</button><button id="templateReset" type="button">初期文に戻す（未保存）</button></div>
+<p id="templateStatus" class="help-note" role="status" aria-live="polite">未変更</p>
+<div id="templateSample" class="template-sample" hidden><b>送付文サンプル（ダミーURL）</b><pre id="templateSampleText"></pre></div>
+</div>
+<div class="card"><h2>⑥ 送付管理</h2><div id="deals">取引なし</div></div>
+<div class="card"><h2>⑦ テスト用</h2><p class="muted">実在のクーポンを使わず、画面の操作を試せます。</p><div class="buttons"><button id="sample">ダミーURLを3件追加</button><button id="reset" class="danger">全テストデータを初期化</button></div></div>
+<div id="previewOverlay" class="preview-overlay" hidden><section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="previewTitle"><div class="preview-head"><h2 id="previewTitle">送付内容の確認</h2></div><p class="muted" id="previewMeta"></p><div id="previewBody" class="preview-body"></div><button type="button" class="preview-close" id="previewClose">確認画面を閉じる</button><p class="muted">これは内容の確認専用です。コピー・送信確認は元の送付管理画面から操作してください。</p></section></div>
+<script>
+(()=>{'use strict';const KEY='coupon_sales_trial_v05_template_lab';const SAFETY_KEY='coupon_sales_trial_v05_template_lab_pre_restore_safety';const $=id=>document.getElementById(id);const DEFAULT_GREETING='お取引ありがとうございます。';const DEFAULT_CLOSING='以上です。お手数ですが内容をご確認ください。';let db={items:[],deals:[]};let pending=null;const now=()=>new Date().toISOString();const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function msg(s){$('status').textContent=s}function validURL(s){try{let u=new URL(s);return ['http:','https:'].includes(u.protocol)}catch{return false}}function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.items)&&Array.isArray(x.deals))db=x}catch(e){msg('保存データ読込失敗：'+e.message)}}function save(){localStorage.setItem(KEY,JSON.stringify(db));}function group(x){return x.product||'未分類'}function free(x){return !x.status||x.status==='available'}function recordMovement(target,product,kind,count){
+ if(!Number.isSafeInteger(count)||count<=0)return;
+ if(!target.lastMovements||typeof target.lastMovements!=='object'||Array.isArray(target.lastMovements))target.lastMovements={};
+ target.lastMovements[product]={kind,count,at:now()};
+}
+function movementBadge(product){
+ const m=db.lastMovements?.[product];
+ if(!m||!Number.isSafeInteger(m.count)||m.count<=0)return '';
+ const types={in:['in','入庫','+'],reserve:['reserve','取引確保','−'],return:['return','取消返却','+']};
+ const info=types[m.kind];if(!info)return '';
+ return `<div class="stock-change ${info[0]}">${info[1]} ${info[2]}${m.count}件</div>`;
+}function draw(){let groups=new Map();for(let x of db.items){let k=group(x),g=groups.get(k)||{total:0,available:0,reserved:0,sent:0};g.total++;g[free(x)?'available':x.status]++;groups.set(k,g)}$('stock').innerHTML=groups.size?[...groups].map(([k,g],i)=>`<div class="stock-entry stock-tone-${i%4}"><div class="row"><div class="stock-name">${esc(k)}</div><div class="stock-count ${g.available===0?'stock-empty':g.available<=10?'stock-low':'stock-ok'}">${g.available}<small>件 利用可</small><span class="stock-level">${g.available===0?'在庫なし':g.available<=10?'残りわずか':'在庫あり'}</span></div></div><div class="stock-meta">総数 ${g.total}件 ／ 確保中 ${g.reserved}件 ／ 送付済 ${g.sent}件</div>${movementBadge(k)}<div class="set-heading">販売セット換算 <span>※数量をタップで確保欄へ入力・確保は手動</span></div><div class="set-grid">${[3,5,6,10,12,20,24].map(n=>`<button type="button" class="set-cell ${Math.floor(g.available/n)===0?'set-none':''}" data-set-qty="${n}" data-set-product="${esc(k)}" aria-label="${esc(k)}、${n}件セット、${Math.floor(g.available/n)}セット。確保欄に入力" ${g.available<n?'disabled':''}><div class="set-top"><span>×${n}</span><b>${Math.floor(g.available/n)}</b><small>セット</small></div><div class="set-remainder">${Math.floor(g.available/n)>0?`余り ${g.available%n}件`:'組めない'}</div></button>`).join('')}</div><details class="set-more"><summary>その他の数量（×2・×7）</summary><div class="set-grid set-grid-extra">${[2,7].map(n=>`<button type="button" class="set-cell ${Math.floor(g.available/n)===0?'set-none':''}" data-set-qty="${n}" data-set-product="${esc(k)}" aria-label="${esc(k)}、${n}件セット、${Math.floor(g.available/n)}セット。確保欄に入力" ${g.available<n?'disabled':''}><div class="set-top"><span>×${n}</span><b>${Math.floor(g.available/n)}</b><small>セット</small></div><div class="set-remainder">${Math.floor(g.available/n)>0?`余り ${g.available%n}件`:'組めない'}</div></button>`).join('')}</div></details></div>`).join(''):'在庫なし';let old=$('product').value;$('product').innerHTML=[...groups].map(([k,g])=>`<option value="${esc(k)}">${esc(k)}（利用可 ${g.available}）</option>`).join('');if(groups.has(old))$('product').value=old; $('deals').innerHTML=db.deals.length?db.deals.slice().reverse().map(d=>{let its=db.items.filter(x=>x.dealId===d.id);let chunks=parts(d,its);let done=chunks.filter(c=>c.sentAt).length;let locked=chunks.some(c=>c.copiedAt)||!!d.copiedAt;let sent=d.status==='sent';return `<div class="deal-entry"><b>${esc(d.label)}</b> <span class="state-tag ${sent?'sent':locked?'copied':''}">${sent?'送付済':locked?'送付作業中':'一時確保'}</span><div class="muted">${esc(d.product)} × ${its.length} ／ ${done}/${chunks.length}通送信確認済</div>${chunks.map((c,i)=>`<div class="chunk-entry"><b>${i+1}/${chunks.length}通目・${c.ids.length}件</b> <span class="state-tag ${c.sentAt?'sent':c.copiedAt?'copied':''}">${c.sentAt?'送信確認済':c.copiedAt?'コピー済・要確認':'未コピー'}</span><div class="buttons"><button data-action="inspect" data-id="${esc(d.id)}" data-part="${i}">確認</button><button data-action="copy" data-id="${esc(d.id)}" data-part="${i}" ${c.sentAt?'disabled':''}>${c.copiedAt?'再コピー':'送付文をコピー'}</button><button class="primary" data-action="sent" data-id="${esc(d.id)}" data-part="${i}" ${!c.copiedAt||c.sentAt?'disabled':''}>送信を確認</button></div></div>`).join('')}${sent?'':`<div class="buttons"><button data-action="cancel" data-id="${esc(d.id)}" ${locked?'disabled':''}>未コピーの確保を取り消す</button></div>`}</div>`}).join(''):'取引なし'}
+function normalized(s){return s.trim()}function validateBatch(arr){
+if(!Array.isArray(arr))throw Error('URL一覧が不正です');
+let seen=new Set(db.items.map(x=>normalized(x.url))),batch=new Set(),accepted=[],duplicates=[],invalid=[];
+for(let i=0;i<arr.length;i++){let x=arr[i],url=x&&typeof x.url==='string'?normalized(x.url):'';
+if(!validURL(url)){invalid.push(i+1);continue}
+if(seen.has(url)||batch.has(url)){duplicates.push(i+1);continue}
+batch.add(url);accepted.push({...x,url,product:typeof x.product==='string'?x.product.trim():''});}
+return {accepted,duplicates,invalid,total:arr.length};}
+function addItems(arr){let r=validateBatch(arr);if(r.accepted.some(x=>!x.product))throw Error('商品名が空欄のURLがあります。登録は行いません');if(r.invalid.length)throw Error(`不正な入力 ${r.invalid.length}件（行・項目番号 ${r.invalid.slice(0,15).join(', ')}）。登録は行いません`);
+let next={...db,items:[...db.items,...r.accepted.map(x=>({url:x.url,product:x.product,typeId:x.typeId||'',status:'available',capturedAt:x.capturedAt||now(),dealId:null}))]};
+const perProduct=new Map();for(const item of r.accepted)perProduct.set(item.product,(perProduct.get(item.product)||0)+1);
+for(const [product,count] of perProduct)recordMovement(next,product,'in',count);
+localStorage.setItem(KEY,JSON.stringify(next));db=next;draw();msg(`検査 ${r.total}件／新規 ${r.accepted.length}件／重複 ${r.duplicates.length}件／不正 0件`);return r;}
+function parseInput(){let lines=$('urlInput').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);return lines.map(url=>({url,product:$('manualProduct').value.trim()}))}
+function clearPending(){pending=null;$('register').disabled=true;$('registerReason').textContent='検査後、登録できる新規URLがある場合に有効になります。'}
+function renderCheckResult(r,note='',tone=''){
+const cells=[['入力',r.total,''],['新規',r.accepted.length,'good'],['重複',r.duplicates.length,r.duplicates.length?'warnmetric':''],['不正',r.invalid.length,r.invalid.length?'bad':'']];
+const metrics=cells.map(([label,num,cls])=>`<div class="metric ${cls}"><div class="metric-label">${label}</div><div class="metric-value">${num}<span style="font-size:12px;font-weight:600;margin-left:3px">件</span></div></div>`).join('');
+let details=[];if(r.duplicates.length)details.push(`重複位置：${r.duplicates.slice(0,30).join(', ')}${r.duplicates.length>30?' ほか':''}`);if(r.invalid.length)details.push(`不正位置：${r.invalid.slice(0,30).join(', ')}${r.invalid.length>30?' ほか':''}`);if(note)details.push(note);
+$('checkResult').innerHTML=`<div class="result-grid">${metrics}</div>${details.length?`<div class="result-note ${tone}">${esc(details.join('\n'))}</div>`:''}`;
+}
+$('urlInput').addEventListener('input',clearPending);$('manualProduct').addEventListener('input',clearPending);
+$('check').onclick=()=>{clearPending();let a=parseInput();if(!a.length){$('checkResult').innerHTML='<div class="result-note warning">URLが入力されていません。</div>';return}let r=validateBatch(a);let note='';let tone='';
+if(!r.invalid.length&&r.accepted.length&&$('manualProduct').value.trim()){pending={rows:a,signature:JSON.stringify(db.items.map(x=>x.url))};$('register').disabled=false;$('registerReason').textContent=`新規 ${r.accepted.length}件を登録できます。重複分は除外します。`;note='新規URLのみ登録できます。重複は登録しません。';tone='success';}
+else if(r.invalid.length){note='不正なURLが含まれるため、登録できません。';tone='warning';$('registerReason').textContent='不正URLを修正して再検査してください。';}
+else if(!r.accepted.length){note='すべて登録済み、または入力内で重複しています。';$('registerReason').textContent='登録可能な新規URLがありません。';}
+else {note='登録する場合は商品名を入力して再検査してください。';tone='warning';$('registerReason').textContent='商品名が未入力です。入力後に再検査してください。';}
+renderCheckResult(r,note,tone);};
+$('register').onclick=()=>{if(!pending)return;try{if(pending.signature!==JSON.stringify(db.items.map(x=>x.url)))throw Error('在庫が変化しました。もう一度検査してください');if(!$('manualProduct').value.trim())throw Error('商品名を入力してください');let r=addItems(pending.rows);renderCheckResult(r,`登録完了：${r.accepted.length}件／重複除外 ${r.duplicates.length}件`,'success');clearPending();$('registerReason').textContent='登録が完了しました。';$('urlInput').value='';}catch(e){clearPending();$('checkResult').innerHTML='<div class="result-note warning">'+esc('登録中止：'+e.message)+'</div>'}};
+$('clearInput').onclick=()=>{$('urlInput').value='';$('manualProduct').value='';$('checkResult').innerHTML='<div class="result-note">入力を消去しました。</div>';clearPending()};
+// Preview the entire import before any write. The existing addItems() remains the sole commit path.
+let importPending=null;
+function cancelImport(){importPending=null;$('importReview').hidden=true;$('file').value=''}
+$('importCancel').onclick=()=>{cancelImport();msg('取り込みを中止しました。在庫は変更されていません。')};
+$('file').onchange=async e=>{let f=e.target.files[0];cancelImport();try{
+ if(!f)return;
+ let j=JSON.parse(await f.text());
+ if(j.schema!=='coupon-url-v04'||!Array.isArray(j.items))throw Error('v0.4形式のJSONではありません');
+ let r=validateBatch(j.items);
+ if(r.invalid.length)throw Error('不正なURLが'+r.invalid.length+'件あります。登録しません');
+ if(r.accepted.some(x=>!x.product))throw Error('商品名が空欄のURLがあります。登録しません');
+ let names=[...new Set(r.accepted.map(x=>x.product))];
+ if(!r.accepted.length){msg('新規登録0件（重複 '+r.duplicates.length+'件）。在庫は変更していません。');return}
+ importPending={items:j.items,signature:JSON.stringify(db.items.map(x=>x.url))};
+ // Display each distinct product and its accepted (new) URL count, without parsing names as HTML.
+ const counts=new Map();for(const x of r.accepted)counts.set(x.product,(counts.get(x.product)||0)+1);
+ const products=$('importReviewProducts');products.replaceChildren();
+ const kind=document.createElement('div');kind.className='review-kind';kind.textContent=counts.size+'種類の商品・登録予定の内訳';products.append(kind);
+ for(const [name,count] of counts){
+  const item=document.createElement('div');item.className='review-item';
+  const title=document.createElement('span');title.className='review-item-name';title.textContent=name;
+  const num=document.createElement('span');num.className='review-item-count';num.textContent=count+'件';
+  item.append(title,num);products.append(item);
+ }
+ $('importMixedWarning').hidden=counts.size<2;
+ $('importReviewCounts').textContent='入力 '+r.total+'件 ／ 新規 '+r.accepted.length+'件 ／ 重複 '+r.duplicates.length+'件 ／ 不正 0件';
+ $('importReview').hidden=false;
+ msg('取り込み内容を確認してください。まだ登録されていません。');
+ }catch(err){cancelImport();msg('取り込み失敗：'+err.message)}finally{e.target.value=''}};
+$('importConfirm').onclick=()=>{if(!importPending)return;try{
+ if(importPending.signature!==JSON.stringify(db.items.map(x=>x.url)))throw Error('確認中に在庫が変化しました。再度読み込んでください');
+ let r=addItems(importPending.items);
+ cancelImport();msg('確認後に登録完了：新規 '+r.accepted.length+'件／重複 '+r.duplicates.length+'件');
+ }catch(err){cancelImport();msg('登録中止：'+err.message)}};
+// Quick select only fills product/quantity; it never creates or reserves URLs.
+$('stock').addEventListener('click',e=>{
+ const b=e.target.closest('button[data-set-qty]');
+ if(!b||b.disabled||!$('stock').contains(b))return;
+ const product=b.dataset.setProduct,n=Number(b.dataset.setQty);
+ if(!Number.isInteger(n)||n<1||n>100)return;
+ const available=db.items.filter(x=>group(x)===product&&free(x)).length;
+ if(available<n){msg('在庫数が変わりました。再確認してください。');draw();return}
+ const select=$('product');
+ if(!Array.from(select.options).some(o=>o.value===product)){msg('商品が見つかりません。再確認してください。');draw();return}
+ select.value=product; $('qty').value=String(n);
+ const panel=$('reservePanel');panel.classList.add('quick-select-active');
+ const note=$('quickSelectNote');note.textContent=`${product} ×${n}件を入力しました。取引識別名を確認し、確保する場合だけ手動でボタンを押してください。`;note.hidden=false;
+ panel.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+});
+$('product').addEventListener('change',()=>{$('reservePanel').classList.remove('quick-select-active');$('quickSelectNote').hidden=true});
+$('qty').addEventListener('input',()=>{$('reservePanel').classList.remove('quick-select-active');$('quickSelectNote').hidden=true});
+function savedTemplate(){const t=db.messageTemplate||{};return {greeting:typeof t.greeting==='string'?t.greeting:DEFAULT_GREETING,closing:typeof t.closing==='string'?t.closing:DEFAULT_CLOSING}}
+function setupTemplateFields(){const t=savedTemplate();$('greetingInput').value=t.greeting;$('closingInput').value=t.closing;$('templateStatus').textContent='現在の保存済み設定を表示しています。';$('templateSample').hidden=true}
+function composeMessage(d,part,index,total){if(typeof part.messageSnapshot==='string')return part.messageSnapshot;
+ const t=d.messageTemplateSnapshot||{greeting:DEFAULT_GREETING,closing:DEFAULT_CLOSING};
+ const greeting=typeof t.greeting==='string'?t.greeting:DEFAULT_GREETING;
+ const closing=typeof t.closing==='string'?t.closing:DEFAULT_CLOSING;
+ const first=index===0?`${greeting}${greeting?'\n':''}${d.product} ${db.items.filter(x=>x.dealId===d.id).length}点分のURLをご案内します。\n\n`:'';
+ const last=index===total-1?(closing?'\n\n'+closing:''):'';
+ return first+part.ids.join('\n')+last;
+}
+$('templatePreview').onclick=()=>{const greeting=$('greetingInput').value,closing=$('closingInput').value;
+ $('templateSampleText').textContent=`${greeting}${greeting?'\n':''}サンプル商品 3点分のURLをご案内します。\n\nhttps://example.com/sample-001\nhttps://example.com/sample-002\nhttps://example.com/sample-003${closing?'\n\n'+closing:''}`;
+ $('templateSample').hidden=false;$('templateStatus').textContent='これは未保存の編集内容のプレビューです。保存する場合は「テンプレートを保存」を押してください。';};
+$('templateSave').onclick=()=>{const greeting=$('greetingInput').value,closing=$('closingInput').value;
+ if(greeting.length>600||closing.length>600){$('templateStatus').textContent='各600文字以内にしてください。';return;}
+ const next={...db,messageTemplate:{greeting,closing}};
+ try{localStorage.setItem(KEY,JSON.stringify(next));db=next;$('templateStatus').textContent='保存しました。今後、新しく確保する取引から適用します。既存取引は変わりません。';}
+ catch(e){$('templateStatus').textContent='保存に失敗しました。以前の設定は変更していません：'+e.message;}
+};
+$('templateReset').onclick=()=>{$('greetingInput').value=DEFAULT_GREETING;$('closingInput').value=DEFAULT_CLOSING;$('templateStatus').textContent='初期文を入力欄に戻しました。まだ保存されていません。';$('templateSample').hidden=true;};
+$('reserve').onclick=()=>{let label=$('deal').value.trim(),product=$('product').value,n=Number($('qty').value);if(!label||!product||!Number.isInteger(n)||n<1||n>100){alert('取引識別名・商品・本数を確認してください');return}if(db.deals.some(x=>x.label===label)){alert('同じ取引識別名があります');return}let a=db.items.filter(x=>group(x)===product&&free(x)).slice(0,n);if(a.length<n){alert('利用可能なURLが不足しています');return}let id='d'+Date.now()+'_'+Math.random().toString(36).slice(2,8);for(let x of a){x.status='reserved';x.dealId=id}db.deals.push({id,label,product,status:'reserved',createdAt:now(),messageTemplateSnapshot:savedTemplate()});recordMovement(db,product,'reserve',n);save();draw();$('reservePanel').classList.remove('quick-select-active');$('quickSelectNote').hidden=true;msg(`${label} に ${n}件確保しました`)};
+function parts(d,its){if(!Array.isArray(d.parts)){d.parts=[];for(let i=0;i<its.length;i+=5)d.parts.push({ids:its.slice(i,i+5).map(x=>x.url),copiedAt:d.copiedAt||null,sentAt:d.status==='sent'?d.sentAt||d.createdAt:null});}return d.parts}
+function sendText(d,part,index,total){return composeMessage(d,part,index,total)}
+// Render the existing message as text, except explicit HTTPS URLs as safe, user-activated links.
+// Never parse message content as HTML; opening a link never changes delivery state.
+function renderPreviewText(message){
+ const target=$('previewBody');target.replaceChildren();
+ const pattern=/https:\/\/[^\s<>"']+/g;
+ let offset=0,match;
+ while((match=pattern.exec(message))!==null){
+  const start=match.index,raw=match[0];
+  const url=raw.replace(/[.,;:!?。、，．！？）)】\]]+$/u,'');
+  if(start>offset)target.append(document.createTextNode(message.slice(offset,start)));
+  if(url){
+   const link=document.createElement('a');link.className='preview-url';
+   link.textContent=url;link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+   target.append(link);
+  }
+  target.append(document.createTextNode(raw.slice(url.length)));
+  offset=start+raw.length;
+ }
+ target.append(document.createTextNode(message.slice(offset)));
+}
+$('previewClose').onclick=()=>{$('previewOverlay').hidden=true};
+$('deals').onclick=async e=>{let b=e.target.closest('button[data-action]');if(!b)return;let d=db.deals.find(x=>x.id===b.dataset.id);if(!d)return;let a=db.items.filter(x=>x.dealId===d.id);let chunks=parts(d,a);let idx=Number(b.dataset.part);let c=chunks[idx];if(b.dataset.action==='cancel'){if(d.status==='sent'||d.copiedAt||chunks.some(x=>x.copiedAt||x.sentAt)){alert('コピー済み・送信確認済みの履歴があるため返却できません。');return}if(!confirm('未コピーの確保を取り消して在庫に戻しますか？'))return;for(let x of a){x.status='available';x.dealId=null}db.deals=db.deals.filter(x=>x.id!==d.id);recordMovement(db,d.product,'return',a.length);save();draw();return}if(!c)return;
+if(b.dataset.action==='inspect'){$('previewMeta').textContent=d.label+' ／ '+(idx+1)+'/'+chunks.length+'通目';renderPreviewText(sendText(d,c,idx,chunks.length));$('previewOverlay').hidden=false;$('previewClose').focus();return}
+if(b.dataset.action==='copy'){if(c.sentAt)return;if(idx>0&&!chunks[idx-1].sentAt){alert('前の通の送信確認を先に済ませてください。');return}let t=sendText(d,c,idx,chunks.length);try{await navigator.clipboard.writeText(t)}catch{let ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:10%;left:5%;width:90%;height:40%;z-index:9999';document.body.append(ta);ta.focus();ta.select();alert('自動コピーできません。表示内容を手動でコピーしてください。');}c.messageSnapshot=c.messageSnapshot||t;c.copiedAt=c.copiedAt||now();d.copiedAt=d.copiedAt||c.copiedAt;save();draw();msg(`${idx+1}/${chunks.length}通目をコピーしました。実際に送信後、「送信を確認」を押してください。`);return}
+if(b.dataset.action==='sent'){if(!c.copiedAt||c.sentAt)return;if(idx>0&&!chunks[idx-1].sentAt)return;if(!confirm(`${idx+1}/${chunks.length}通目を取引ナビで実際に送信しましたか？\n確認後はこのURLを再利用できません。`))return;c.sentAt=now();for(let x of a.filter(x=>c.ids.includes(x.url)))x.status='sent';if(chunks.every(x=>x.sentAt)){d.status='sent';d.sentAt=now()}save();draw();msg(`${idx+1}/${chunks.length}通目の送信を確認しました`)}
+};
+function download(obj,name){let u=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));let a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}function backupFilename(){let label=$('backupName').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/\s+/g,'_').replace(/^\.+|\.+$/g,'').slice(0,80);return 'coupon_sales_v05_template_lab_'+(label||new Date().toISOString().replace(/[:.]/g,'-'))+'.json'}
+function backupObject(){return {schema:'coupon-sales-trial-v04',exportedAt:now(),...db}}
+
+$('exportShare').onclick=async()=>{const name=backupFilename(),json=JSON.stringify(backupObject(),null,2);const file=new File([json],name,{type:'application/json'});try{if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[file]})){download(backupObject(),name);msg('共有機能に非対応のため通常のダウンロードで保存しました。Safariのダウンロード先を確認してください');return}await navigator.share({files:[file]});msg('共有画面を開きました。「ファイルに保存」を選んだ場合は保存先を確認してください')}catch(err){if(err.name==='AbortError'){msg('保存先選択をキャンセルしました')}else{msg('保存先選択に失敗しました。再度お試しください：'+err.message)}}};
+$('restore').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;let j=JSON.parse(await f.text());if(!['coupon-sales-trial-v02','coupon-sales-trial-v03','coupon-sales-trial-v04'].includes(j.schema)||!Array.isArray(j.items)||!Array.isArray(j.deals))throw Error('管理ツールのバックアップ形式ではありません');if(!j.items.every(x=>x&&typeof x.url==='string'&&validURL(x.url)&&typeof x.product==='string')||new Set(j.items.map(x=>normalized(x.url))).size!==j.items.length)throw Error('復元ファイルに不正URLまたは重複URLがあります');
+let existing=new Map(db.items.map(x=>[normalized(x.url),x]));let rollback=[];
+for(let x of j.items){let old=existing.get(normalized(x.url));if(old&&((old.status==='sent'&&x.status!=='sent')||(old.status==='reserved'&&x.status==='available')||(old.copiedAt&&x.status==='available')))rollback.push(x.url)}
+let copiedDeals=db.deals.filter(d=>{if(!(d.copiedAt||d.parts?.some(p=>p.copiedAt||p.sentAt)))return false;let y=j.deals.find(v=>v.id===d.id);if(!y||!y.copiedAt)return true;return !!d.parts?.some((p,i)=>(p.copiedAt&&!y.parts?.[i]?.copiedAt)||(p.sentAt&&!y.parts?.[i]?.sentAt))});if(copiedDeals.length)throw Error('コピー済み取引の履歴が欠落するため復元を停止しました');
+let missing=db.items.filter(x=>(x.status==='sent'||x.status==='reserved')&&!j.items.some(y=>normalized(y.url)===normalized(x.url)));
+if(rollback.length||missing.length)throw Error(`危険な復元を停止：状態の巻き戻し ${rollback.length}件／確保・送付済み履歴の欠落 ${missing.length}件。古いバックアップを上書き復元しないでください`);
+if(!confirm('現在の管理データをバックアップ内容で置き換えますか？\n復元前の状態を安全領域に自動退避します。\n別端末や過去に削除した履歴までは照合できません。'))return;
+// Save a verified, recoverable pre-restore snapshot BEFORE touching active storage.
+const before=JSON.stringify({schema:'coupon-sales-trial-v04-safety',savedAt:now(),data:db});
+try{localStorage.setItem(SAFETY_KEY,before);if(localStorage.getItem(SAFETY_KEY)!==before)throw Error('退避内容を確認できません')}catch(err){throw Error('復元前の自動退避に失敗しました。元データは変更していません：'+err.message)}
+let next={items:j.items,deals:j.deals,lastMovements:j.lastMovements||{},messageTemplate:j.messageTemplate||{greeting:DEFAULT_GREETING,closing:DEFAULT_CLOSING}};
+try{localStorage.setItem(KEY,JSON.stringify(next));if(localStorage.getItem(KEY)!==JSON.stringify(next))throw Error('保存結果の検証に失敗')}catch(err){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}throw Error('復元データの保存に失敗しました。安全退避は保持しています：'+err.message)}
+db=next;cancelImport();clearPending();draw();setupTemplateFields();msg('管理データを復元しました（復元前データは安全領域に退避済み）')}catch(e){msg('復元失敗：'+e.message)}finally{e.target.value=''}};
+const safetyBtn=document.createElement('button');safetyBtn.textContent='復元前の安全退避をダウンロード';safetyBtn.type='button';safetyBtn.onclick=()=>{try{let raw=localStorage.getItem(SAFETY_KEY);if(!raw)throw Error('退避データがありません');let snap=JSON.parse(raw);if(snap.schema!=='coupon-sales-trial-v04-safety'||!Array.isArray(snap.data?.items)||!Array.isArray(snap.data?.deals))throw Error('退避データが不正です');download({schema:'coupon-sales-trial-v04',exportedAt:snap.savedAt,...snap.data},'coupon_sales_v05_template_lab_pre_restore_safety.json');msg('復元前の退避データをダウンロードしました')}catch(err){msg('安全退避の取得失敗：'+err.message)}};
+$('safetyActions').append(safetyBtn);
+$('sample').onclick=()=>addItems([1,2,3].map(i=>({url:`https://example.com/test-coupon-${i}`,product:'テスト商品'})));$('reset').onclick=()=>{if(!confirm('この試作ページ内の全データを削除します。よろしいですか？'))return;db={items:[],deals:[]};cancelImport();save();draw();setupTemplateFields();msg('初期化しました')};load();draw();setupTemplateFields();
+})();
+</script></body></html>
