@@ -177,10 +177,21 @@ textarea{min-height:94px}button,.file{min-height:42px;padding:8px 10px;font-size
 #templatePanel .buttons button{flex:1 1 135px}
 .template-sample{margin-top:12px;background:#f5f8fb;border:1px solid #d6e3ec;border-radius:12px;padding:12px}
 .template-sample pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 -apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;margin:10px 0 0}
+
+/* 3 greeting tiers: low-chroma color is used only for the selector and the check badge. */
+.greeting-choice{display:block;width:100%;text-align:center;text-align-last:center;font-weight:750;border:2px solid #a5cfc4;background:#eaf4f1;color:#176c5c;border-radius:12px;padding:11px 30px 11px 12px;min-height:52px}
+.greeting-choice[data-tone="repeat"]{border-color:#b9cae7;background:#eef2fa;color:#3f609c}
+.greeting-choice[data-tone="regular"]{border-color:#d7bce4;background:#f6eff9;color:#805397}
+.greeting-edit-pane{margin-top:10px}
+.greeting-edit-pane[hidden]{display:none!important}
+.greeting-preview-settings{margin:16px 0 9px;padding-top:13px;border-top:1px solid #dae3e9}
+.greeting-kind-badge{display:inline-block;padding:3px 9px;margin-left:7px;border-radius:99px;font-size:12px;font-weight:750;background:#eaf4f1;color:#176c5c}
+.greeting-kind-badge[data-tone="repeat"]{background:#eef2fa;color:#3f609c}
+.greeting-kind-badge[data-tone="regular"]{background:#f6eff9;color:#805397}
 </style></head><body>
-<h1>クーポン販売管理 <span class="pill">検証 v0.5 統合候補・挨拶文対応</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
+<h1>クーポン販売管理 <span class="pill">検証 v0.5 3種類挨拶・UI実験</span></h1><div class="sub">iPhone Safari向け・端末内保存／外部送信なし</div>
 <div class="card"><h2>① 在庫を取り込む</h2><p class="muted">在庫追加用の <code>coupon-url-v04</code> 形式を読み込みます。管理データ全体の復元は下の専用欄から行ってください。</p><label class="file primary import-file">在庫JSONを読み込む<input id="file" type="file" accept=".json,application/json"></label><p id="status" role="status">未取り込み</p><section id="importReview" hidden aria-label="取り込み前の確認"><strong>登録前に内容を確認</strong><div id="importReviewProducts" class="review-product"></div><div id="importReviewCounts" class="review-counts"></div><p id="importMixedWarning" class="review-mixed-warning" hidden>複数の商品が含まれています。商品名と件数をそれぞれ確認してください。</p><p class="muted">確定するまで在庫は変更されません。商品名が違う場合は取り込みを中止し、元のJSONを修正してください。</p><div class="review-actions"><button id="importCancel" type="button">中止する</button><button id="importConfirm" type="button" class="primary">確認して登録</button></div></section></div>
-<div class="card" id="backupPanel"><h2>バックアップ・復元</h2><p class="muted">管理データ全体を保存・復元します。復元前のデータは自動退避されます。</p><label for="backupName">バックアップのファイル名（任意）</label><input id="backupName" type="text" maxlength="90" placeholder="例：送付前_20261028"><div class="backup-actions"><button id="exportShare" type="button">バックアップを保存</button><label class="file restore-file">バックアップから復元<input id="restore" type="file" accept=".json,application/json"></label></div><details class="recovery"><summary>緊急時のデータ救出</summary><p class="muted">復元直前に自動退避したデータを取り出します。通常の操作では使用しません。</p><div id="safetyActions"></div></details><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版はv0.5 挨拶文実験専用です。実取引には使わず、ダミーURLで確認してください。v0.2・v0.3・v0.4の保存領域には触れません。v0.5専用の保存領域を使用します。復元直前のデータを別領域に自動退避します。</p></div>
+<div class="card" id="backupPanel"><h2>バックアップ・復元</h2><p class="muted">管理データ全体を保存・復元します。復元前のデータは自動退避されます。</p><label for="backupName">バックアップのファイル名（任意）</label><input id="backupName" type="text" maxlength="90" placeholder="例：送付前_20261028"><div class="backup-actions"><button id="exportShare" type="button">バックアップを保存</button><label class="file restore-file">バックアップから復元<input id="restore" type="file" accept=".json,application/json"></label></div><details class="recovery"><summary>緊急時のデータ救出</summary><p class="muted">復元直前に自動退避したデータを取り出します。通常の操作では使用しません。</p><div id="safetyActions"></div></details><p class="warn">重要：Safariの閲覧データ削除・プライベートブラウズ・別端末では保存内容が残らない場合があります。この版はv0.5 挨拶文3種類の実験専用です。実取引には使わず、ダミーURLで確認してください。v0.2・v0.3・v0.4の保存領域には触れません。v0.5専用の保存領域を使用します。復元直前のデータを別領域に自動退避します。</p></div>
 <div class="card"><h2>② URL重複チェック・登録</h2>
 <p class="muted">URLを1行に1件ずつ貼り付けます。判定はSafari内だけで実行し、外部に送信しません。入力内容は画面を離れると破棄されます。</p>
 <label>商品名（登録時のみ使用）<input id="manualProduct" placeholder="例：テスト商品"></label>
@@ -190,13 +201,24 @@ https://example.com/test-002"></textarea></label>
 <div id="checkResult" role="status" aria-live="polite"></div><p id="registerReason" class="button-reason">先にURLを検査してください。</p>
 </div>
 <div class="card"><h2>③ 在庫一覧</h2><p class="section-hint">利用可能数・セット換算と、商品ごとの直近の在庫増減を表示します。送付確認は利用可能数を減らしません。</p><div id="stock">在庫なし</div></div>
-<div class="card" id="reservePanel"><h2>④ 取引用に確保する</h2><p id="quickSelectNote" class="quick-select-note" role="status" aria-live="polite" hidden></p><label>取引識別名（氏名・住所などは入力しない）<input id="deal" placeholder="例：テスト取引001" maxlength="80"></label><label>商品<select id="product"></select></label><label>本数<input id="qty" type="number" min="1" max="100" value="1"></label><label for="greetingType">冒頭の挨拶（取引ごとに選択）</label><select id="greetingType"><option value="normal">通常のお客様</option><option value="repeat">リピーター・常連のお客様</option></select><button class="primary" id="reserve">未使用URLを一時確保</button><p class="muted">確保済み・送付済みURLは選ばれません。</p></div>
+<div class="card" id="reservePanel"><h2>④ 取引用に確保する</h2><p id="quickSelectNote" class="quick-select-note" role="status" aria-live="polite" hidden></p><label>取引識別名（氏名・住所などは入力しない）<input id="deal" placeholder="例：テスト取引001" maxlength="80"></label><label>商品<select id="product"></select></label><label>本数<input id="qty" type="number" min="1" max="100" value="1"></label><label for="greetingType">冒頭の挨拶（取引ごとに選択）</label><select id="greetingType"><option value="normal">通常のお客様</option><option value="repeat">リピーター</option><option value="regular">常連のお客様</option></select><p class="help-note">この取引で使う冒頭文を選びます。確保後は取引ごとに文章が固定されます。</p><button class="primary" id="reserve">未使用URLを一時確保</button><p class="muted">確保済み・送付済みURLは選ばれません。</p></div>
 <div class="card" id="templatePanel"><h2>⑤ 挨拶テンプレート設定（実験）</h2>
 <p class="section-hint">冒頭と末尾の文章だけ編集できます。商品名・数量・URLは自動生成です。<strong>設定変更は新しく確保する取引から適用</strong>します。</p>
-<label for="greetingInput">通常のお客様向け・冒頭の挨拶</label><textarea id="greetingInput" maxlength="600" rows="3" placeholder="お取引ありがとうございます。"></textarea>
-<label for="repeatGreetingInput">リピーター・常連のお客様向け・冒頭の挨拶</label><textarea id="repeatGreetingInput" maxlength="600" rows="3" placeholder="いつもお取引いただき、ありがとうございます。"></textarea>
-<label for="closingInput">末尾の挨拶文（共通）</label><textarea id="closingInput" maxlength="600" rows="3" placeholder="以上です。お手数ですが内容をご確認ください。"></textarea>
-<label for="templatePreviewType">サンプルの種類</label><select id="templatePreviewType"><option value="normal">通常のお客様</option><option value="repeat">リピーター・常連のお客様</option></select>
+<div class="greeting-editor">
+<label for="templateEditType">① 編集する冒頭文</label>
+<select id="templateEditType" class="greeting-choice" aria-label="編集する冒頭文の種類">
+<option value="normal">通常のお客様</option><option value="repeat">リピーター</option><option value="regular">常連のお客様</option>
+</select>
+<div class="greeting-edit-pane" data-kind="normal"><label for="greetingInput">通常のお客様向け・冒頭文</label><textarea id="greetingInput" maxlength="600" rows="3"></textarea></div>
+<div class="greeting-edit-pane" data-kind="repeat" hidden><label for="repeatGreetingInput">リピーター向け・冒頭文</label><textarea id="repeatGreetingInput" maxlength="600" rows="3"></textarea></div>
+<div class="greeting-edit-pane" data-kind="regular" hidden><label for="regularGreetingInput">常連のお客様向け・冒頭文</label><textarea id="regularGreetingInput" maxlength="600" rows="3"></textarea></div>
+<p class="help-note">切り替えても編集途中の文章は消えません。「テンプレートを保存」で3種類まとめて保存します。</p>
+</div>
+<label for="closingInput">末尾の挨拶文（3種類共通）</label><textarea id="closingInput" maxlength="600" rows="3"></textarea>
+<div class="greeting-preview-settings">
+<label for="templatePreviewType">② プレビューする挨拶（送付先には影響しません）</label>
+<select id="templatePreviewType" class="greeting-choice"><option value="normal">通常のお客様</option><option value="repeat">リピーター</option><option value="regular">常連のお客様</option></select>
+</div>
 <div class="buttons"><button id="templatePreview" type="button">サンプル文を確認</button><button id="templateSave" type="button" class="primary">テンプレートを保存</button><button id="templateReset" type="button">初期文に戻す（未保存）</button></div>
 <p id="templateStatus" class="help-note" role="status" aria-live="polite">未変更</p>
 <div id="templateSample" class="template-sample" hidden><b>送付文サンプル（ダミーURL）</b><pre id="templateSampleText"></pre></div>
@@ -205,7 +227,7 @@ https://example.com/test-002"></textarea></label>
 <div class="card"><h2>⑦ テスト用</h2><p class="muted">実在のクーポンを使わず、画面の操作を試せます。</p><div class="buttons"><button id="sample">ダミーURLを3件追加</button><button id="reset" class="danger">全テストデータを初期化</button></div></div>
 <div id="previewOverlay" class="preview-overlay" hidden><section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="previewTitle"><div class="preview-head"><h2 id="previewTitle">送付内容の確認</h2></div><p class="muted" id="previewMeta"></p><div id="previewBody" class="preview-body"></div><button type="button" class="preview-close" id="previewClose">確認画面を閉じる</button><p class="muted">これは内容の確認専用です。コピー・送信確認は元の送付管理画面から操作してください。</p></section></div>
 <script>
-(()=>{'use strict';const KEY='coupon_sales_trial_v05_repeat_lab';const SAFETY_KEY='coupon_sales_trial_v05_repeat_lab_pre_restore_safety';const $=id=>document.getElementById(id);const DEFAULT_GREETING='お取引ありがとうございます。';const DEFAULT_REPEAT_GREETING='いつもお取引いただき、ありがとうございます。';const DEFAULT_CLOSING='以上です。お手数ですが内容をご確認ください。';let db={items:[],deals:[]};let pending=null;const now=()=>new Date().toISOString();const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function msg(s){$('status').textContent=s}function validURL(s){try{let u=new URL(s);return ['http:','https:'].includes(u.protocol)}catch{return false}}function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.items)&&Array.isArray(x.deals))db=x}catch(e){msg('保存データ読込失敗：'+e.message)}}function save(){localStorage.setItem(KEY,JSON.stringify(db));}function group(x){return x.product||'未分類'}function free(x){return !x.status||x.status==='available'}function recordMovement(target,product,kind,count){
+(()=>{'use strict';const KEY='coupon_sales_trial_v05_repeat_lab';const SAFETY_KEY='coupon_sales_trial_v05_repeat_lab_pre_restore_safety';const $=id=>document.getElementById(id);const DEFAULT_GREETING='お取引ありがとうございます。';const DEFAULT_REPEAT_GREETING='再びお取引いただき、ありがとうございます。';const DEFAULT_REGULAR_GREETING='いつもお世話になっております。今回もお取引いただき、ありがとうございます。';const DEFAULT_CLOSING='以上です。お手数ですが内容をご確認ください。';let db={items:[],deals:[]};let pending=null;const now=()=>new Date().toISOString();const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function msg(s){$('status').textContent=s}function validURL(s){try{let u=new URL(s);return ['http:','https:'].includes(u.protocol)}catch{return false}}function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.items)&&Array.isArray(x.deals))db=x}catch(e){msg('保存データ読込失敗：'+e.message)}}function save(){localStorage.setItem(KEY,JSON.stringify(db));}function group(x){return x.product||'未分類'}function free(x){return !x.status||x.status==='available'}function recordMovement(target,product,kind,count){
  if(!Number.isSafeInteger(count)||count<=0)return;
  if(!target.lastMovements||typeof target.lastMovements!=='object'||Array.isArray(target.lastMovements))target.lastMovements={};
  target.lastMovements[product]={kind,count,at:now()};
@@ -298,8 +320,14 @@ $('stock').addEventListener('click',e=>{
 });
 $('product').addEventListener('change',()=>{$('reservePanel').classList.remove('quick-select-active');$('quickSelectNote').hidden=true});
 $('qty').addEventListener('input',()=>{$('reservePanel').classList.remove('quick-select-active');$('quickSelectNote').hidden=true});
-function savedTemplate(){const t=db.messageTemplate||{};return {greeting:typeof t.greeting==='string'?t.greeting:DEFAULT_GREETING,repeatGreeting:typeof t.repeatGreeting==='string'?t.repeatGreeting:DEFAULT_REPEAT_GREETING,closing:typeof t.closing==='string'?t.closing:DEFAULT_CLOSING}}
-function setupTemplateFields(){const t=savedTemplate();$('greetingInput').value=t.greeting;$('repeatGreetingInput').value=t.repeatGreeting;$('closingInput').value=t.closing;$('templateStatus').textContent='現在の保存済み設定を表示しています。';$('templateSample').hidden=true}
+function savedTemplate(){const t=db.messageTemplate||{};return {greeting:typeof t.greeting==='string'?t.greeting:DEFAULT_GREETING,repeatGreeting:typeof t.repeatGreeting==='string'?t.repeatGreeting:DEFAULT_REPEAT_GREETING,regularGreeting:typeof t.regularGreeting==='string'?t.regularGreeting:DEFAULT_REGULAR_GREETING,closing:typeof t.closing==='string'?t.closing:DEFAULT_CLOSING}}
+function setupTemplateFields(){const t=savedTemplate();$('greetingInput').value=t.greeting;$('repeatGreetingInput').value=t.repeatGreeting;$('regularGreetingInput').value=t.regularGreeting;$('closingInput').value=t.closing;$('templateStatus').textContent='現在の保存済み設定を表示しています。';$('templateSample').hidden=true}
+function updateGreetingSelector(el){el.dataset.tone=el.value;}
+function switchGreetingEditor(){const type=$('templateEditType').value;document.querySelectorAll('.greeting-edit-pane').forEach(p=>{p.hidden=p.dataset.kind!==type});updateGreetingSelector($('templateEditType'));}
+$('templateEditType').addEventListener('change',switchGreetingEditor);
+$('templatePreviewType').addEventListener('change',()=>updateGreetingSelector($('templatePreviewType')));
+$('greetingType').addEventListener('change',()=>updateGreetingSelector($('greetingType')));
+function greetingLabel(kind){return kind==='regular'?'常連':kind==='repeat'?'リピーター':'通常';}
 function composeMessage(d,part,index,total){if(typeof part.messageSnapshot==='string')return part.messageSnapshot;
  const t=d.messageTemplateSnapshot||{greeting:DEFAULT_GREETING,closing:DEFAULT_CLOSING};
  const greeting=typeof t.greeting==='string'?t.greeting:DEFAULT_GREETING;
@@ -308,17 +336,17 @@ function composeMessage(d,part,index,total){if(typeof part.messageSnapshot==='st
  const last=index===total-1?(closing?'\n\n'+closing:''):'';
  return first+part.ids.join('\n')+last;
 }
-$('templatePreview').onclick=()=>{const greeting=$('templatePreviewType').value==='repeat'?$('repeatGreetingInput').value:$('greetingInput').value,closing=$('closingInput').value;
+$('templatePreview').onclick=()=>{const greeting=$('templatePreviewType').value==='regular'?$('regularGreetingInput').value:$('templatePreviewType').value==='repeat'?$('repeatGreetingInput').value:$('greetingInput').value,closing=$('closingInput').value;
  $('templateSampleText').textContent=`${greeting}${greeting?'\n':''}サンプル商品 3点分のURLをご案内します。\n\nhttps://example.com/sample-001\nhttps://example.com/sample-002\nhttps://example.com/sample-003${closing?'\n\n'+closing:''}`;
  $('templateSample').hidden=false;$('templateStatus').textContent='これは未保存の編集内容のプレビューです。保存する場合は「テンプレートを保存」を押してください。';};
-$('templateSave').onclick=()=>{const greeting=$('greetingInput').value,repeatGreeting=$('repeatGreetingInput').value,closing=$('closingInput').value;
- if(greeting.length>600||repeatGreeting.length>600||closing.length>600){$('templateStatus').textContent='各600文字以内にしてください。';return;}
- const next={...db,messageTemplate:{greeting,repeatGreeting,closing}};
+$('templateSave').onclick=()=>{const greeting=$('greetingInput').value,repeatGreeting=$('repeatGreetingInput').value,regularGreeting=$('regularGreetingInput').value,closing=$('closingInput').value;
+ if(greeting.length>600||repeatGreeting.length>600||regularGreeting.length>600||closing.length>600){$('templateStatus').textContent='各600文字以内にしてください。';return;}
+ const next={...db,messageTemplate:{greeting,repeatGreeting,regularGreeting,closing}};
  try{localStorage.setItem(KEY,JSON.stringify(next));db=next;$('templateStatus').textContent='保存しました。今後、新しく確保する取引から適用します。既存取引は変わりません。';}
  catch(e){$('templateStatus').textContent='保存に失敗しました。以前の設定は変更していません：'+e.message;}
 };
-$('templateReset').onclick=()=>{$('greetingInput').value=DEFAULT_GREETING;$('repeatGreetingInput').value=DEFAULT_REPEAT_GREETING;$('closingInput').value=DEFAULT_CLOSING;$('templateStatus').textContent='初期文を入力欄に戻しました。まだ保存されていません。';$('templateSample').hidden=true;};
-$('reserve').onclick=()=>{let label=$('deal').value.trim(),product=$('product').value,n=Number($('qty').value);if(!label||!product||!Number.isInteger(n)||n<1||n>100){alert('取引識別名・商品・本数を確認してください');return}if(db.deals.some(x=>x.label===label)){alert('同じ取引識別名があります');return}let a=db.items.filter(x=>group(x)===product&&free(x)).slice(0,n);if(a.length<n){alert('利用可能なURLが不足しています');return}let id='d'+Date.now()+'_'+Math.random().toString(36).slice(2,8);for(let x of a){x.status='reserved';x.dealId=id}const kind=$('greetingType').value==='repeat'?'repeat':'normal';const template=savedTemplate();db.deals.push({id,label,product,status:'reserved',createdAt:now(),greetingKind:kind,messageTemplateSnapshot:{greeting:kind==='repeat'?template.repeatGreeting:template.greeting,closing:template.closing}});recordMovement(db,product,'reserve',n);save();draw();$('reservePanel').classList.remove('quick-select-active');$('quickSelectNote').hidden=true;$('greetingType').value='normal';msg(`${label} に ${n}件確保しました`)};
+$('templateReset').onclick=()=>{$('greetingInput').value=DEFAULT_GREETING;$('repeatGreetingInput').value=DEFAULT_REPEAT_GREETING;$('regularGreetingInput').value=DEFAULT_REGULAR_GREETING;$('closingInput').value=DEFAULT_CLOSING;$('templateStatus').textContent='初期文を入力欄に戻しました。まだ保存されていません。';$('templateSample').hidden=true;};
+$('reserve').onclick=()=>{let label=$('deal').value.trim(),product=$('product').value,n=Number($('qty').value);if(!label||!product||!Number.isInteger(n)||n<1||n>100){alert('取引識別名・商品・本数を確認してください');return}if(db.deals.some(x=>x.label===label)){alert('同じ取引識別名があります');return}let a=db.items.filter(x=>group(x)===product&&free(x)).slice(0,n);if(a.length<n){alert('利用可能なURLが不足しています');return}let id='d'+Date.now()+'_'+Math.random().toString(36).slice(2,8);for(let x of a){x.status='reserved';x.dealId=id}const kind=['normal','repeat','regular'].includes($('greetingType').value)?$('greetingType').value:'normal';const template=savedTemplate();db.deals.push({id,label,product,status:'reserved',createdAt:now(),greetingKind:kind,messageTemplateSnapshot:{greeting:kind==='regular'?template.regularGreeting:kind==='repeat'?template.repeatGreeting:template.greeting,closing:template.closing}});recordMovement(db,product,'reserve',n);save();draw();$('reservePanel').classList.remove('quick-select-active');$('quickSelectNote').hidden=true;$('greetingType').value='normal';updateGreetingSelector($('greetingType'));msg(`${label} に ${n}件確保しました`)};
 function parts(d,its){if(!Array.isArray(d.parts)){d.parts=[];for(let i=0;i<its.length;i+=5)d.parts.push({ids:its.slice(i,i+5).map(x=>x.url),copiedAt:d.copiedAt||null,sentAt:d.status==='sent'?d.sentAt||d.createdAt:null});}return d.parts}
 function sendText(d,part,index,total){return composeMessage(d,part,index,total)}
 // Render the existing message as text, except explicit HTTPS URLs as safe, user-activated links.
@@ -343,7 +371,7 @@ function renderPreviewText(message){
 }
 $('previewClose').onclick=()=>{$('previewOverlay').hidden=true};
 $('deals').onclick=async e=>{let b=e.target.closest('button[data-action]');if(!b)return;let d=db.deals.find(x=>x.id===b.dataset.id);if(!d)return;let a=db.items.filter(x=>x.dealId===d.id);let chunks=parts(d,a);let idx=Number(b.dataset.part);let c=chunks[idx];if(b.dataset.action==='cancel'){if(d.status==='sent'||d.copiedAt||chunks.some(x=>x.copiedAt||x.sentAt)){alert('コピー済み・送信確認済みの履歴があるため返却できません。');return}if(!confirm('未コピーの確保を取り消して在庫に戻しますか？'))return;for(let x of a){x.status='available';x.dealId=null}db.deals=db.deals.filter(x=>x.id!==d.id);recordMovement(db,d.product,'return',a.length);save();draw();return}if(!c)return;
-if(b.dataset.action==='inspect'){$('previewMeta').textContent=d.label+' ／ '+(idx+1)+'/'+chunks.length+'通目';renderPreviewText(sendText(d,c,idx,chunks.length));$('previewOverlay').hidden=false;$('previewClose').focus();return}
+if(b.dataset.action==='inspect'){$('previewMeta').textContent=d.label+' ／ '+(idx+1)+'/'+chunks.length+'通目 ／ 挨拶：'+greetingLabel(d.greetingKind);renderPreviewText(sendText(d,c,idx,chunks.length));$('previewOverlay').hidden=false;$('previewClose').focus();return}
 if(b.dataset.action==='copy'){if(c.sentAt)return;if(idx>0&&!chunks[idx-1].sentAt){alert('前の通の送信確認を先に済ませてください。');return}let t=sendText(d,c,idx,chunks.length);try{await navigator.clipboard.writeText(t)}catch{let ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:10%;left:5%;width:90%;height:40%;z-index:9999';document.body.append(ta);ta.focus();ta.select();alert('自動コピーできません。表示内容を手動でコピーしてください。');}c.messageSnapshot=c.messageSnapshot||t;c.copiedAt=c.copiedAt||now();d.copiedAt=d.copiedAt||c.copiedAt;save();draw();msg(`${idx+1}/${chunks.length}通目をコピーしました。実際に送信後、「送信を確認」を押してください。`);return}
 if(b.dataset.action==='sent'){if(!c.copiedAt||c.sentAt)return;if(idx>0&&!chunks[idx-1].sentAt)return;if(!confirm(`${idx+1}/${chunks.length}通目を取引ナビで実際に送信しましたか？\n確認後はこのURLを再利用できません。`))return;c.sentAt=now();for(let x of a.filter(x=>c.ids.includes(x.url)))x.status='sent';if(chunks.every(x=>x.sentAt)){d.status='sent';d.sentAt=now()}save();draw();msg(`${idx+1}/${chunks.length}通目の送信を確認しました`)}
 };
@@ -361,11 +389,11 @@ if(!confirm('現在の管理データをバックアップ内容で置き換え�
 // Save a verified, recoverable pre-restore snapshot BEFORE touching active storage.
 const before=JSON.stringify({schema:'coupon-sales-trial-v04-safety',savedAt:now(),data:db});
 try{localStorage.setItem(SAFETY_KEY,before);if(localStorage.getItem(SAFETY_KEY)!==before)throw Error('退避内容を確認できません')}catch(err){throw Error('復元前の自動退避に失敗しました。元データは変更していません：'+err.message)}
-let next={items:j.items,deals:j.deals,lastMovements:j.lastMovements||{},messageTemplate:j.messageTemplate||{greeting:DEFAULT_GREETING,repeatGreeting:DEFAULT_REPEAT_GREETING,closing:DEFAULT_CLOSING}};
+let next={items:j.items,deals:j.deals,lastMovements:j.lastMovements||{},messageTemplate:j.messageTemplate||{greeting:DEFAULT_GREETING,repeatGreeting:DEFAULT_REPEAT_GREETING,regularGreeting:DEFAULT_REGULAR_GREETING,closing:DEFAULT_CLOSING}};
 try{localStorage.setItem(KEY,JSON.stringify(next));if(localStorage.getItem(KEY)!==JSON.stringify(next))throw Error('保存結果の検証に失敗')}catch(err){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}throw Error('復元データの保存に失敗しました。安全退避は保持しています：'+err.message)}
-db=next;cancelImport();clearPending();draw();setupTemplateFields();msg('管理データを復元しました（復元前データは安全領域に退避済み）')}catch(e){msg('復元失敗：'+e.message)}finally{e.target.value=''}};
+db=next;cancelImport();clearPending();draw();setupTemplateFields();switchGreetingEditor();updateGreetingSelector($('templatePreviewType'));updateGreetingSelector($('greetingType'));msg('管理データを復元しました（復元前データは安全領域に退避済み）')}catch(e){msg('復元失敗：'+e.message)}finally{e.target.value=''}};
 const safetyBtn=document.createElement('button');safetyBtn.textContent='復元前の安全退避をダウンロード';safetyBtn.type='button';safetyBtn.onclick=()=>{try{let raw=localStorage.getItem(SAFETY_KEY);if(!raw)throw Error('退避データがありません');let snap=JSON.parse(raw);if(snap.schema!=='coupon-sales-trial-v04-safety'||!Array.isArray(snap.data?.items)||!Array.isArray(snap.data?.deals))throw Error('退避データが不正です');download({schema:'coupon-sales-trial-v04',exportedAt:snap.savedAt,...snap.data},'coupon_sales_v05_test_pre_restore_safety.json');msg('復元前の退避データをダウンロードしました')}catch(err){msg('安全退避の取得失敗：'+err.message)}};
 $('safetyActions').append(safetyBtn);
-$('sample').onclick=()=>addItems([1,2,3].map(i=>({url:`https://example.com/test-coupon-${i}`,product:'テスト商品'})));$('reset').onclick=()=>{if(!confirm('この試作ページ内の全データを削除します。よろしいですか？'))return;db={items:[],deals:[]};cancelImport();save();draw();setupTemplateFields();msg('初期化しました')};load();draw();setupTemplateFields();
+$('sample').onclick=()=>addItems([1,2,3].map(i=>({url:`https://example.com/test-coupon-${i}`,product:'テスト商品'})));$('reset').onclick=()=>{if(!confirm('この試作ページ内の全データを削除します。よろしいですか？'))return;db={items:[],deals:[]};cancelImport();save();draw();setupTemplateFields();msg('初期化しました')};load();draw();setupTemplateFields();switchGreetingEditor();updateGreetingSelector($('templatePreviewType'));updateGreetingSelector($('greetingType'));
 })();
 </script></body></html>
