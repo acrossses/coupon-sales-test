@@ -26,6 +26,123 @@
 @media(max-width:380px){.deal-store{font-size:13px}.deal-product{font-size:16px}.deal-qty{font-size:23px}}
 textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;padding:10px;border:1px solid #c7d3da;border-radius:9px;margin-top:5px;resize:vertical}#checkSummary{font-size:13px;color:#195c54;padding:10px 0;white-space:pre-wrap}.check-item{border:1px solid #e0e8ec;padding:9px;border-radius:9px;margin:6px 0;font-size:12px;overflow-wrap:anywhere}.check-item select{max-width:100%;margin-top:7px}details.card summary{cursor:pointer;font-weight:750} .debug-log{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;background:#14232d;color:#d6f4e7;border-radius:8px;padding:10px;font-size:11px;line-height:1.6}input,textarea,select{max-width:100%} .product,.store{min-width:0}body{overflow-wrap:anywhere}
  .chunk{padding:11px;margin:9px 0;border:1px solid #dce5e9;background:#fbfcfc;border-radius:10px}.chunk-title{font-weight:750;font-size:13px;margin-bottom:8px}.chunk .row button{font-size:12px;flex:1 1 135px}.badge-sent{background:#e8f0f3;color:#3a6370}.badge-copied{background:#fff0d6;color:#93631a}.restore-input{border:1px solid #c8d3da;padding:9px;border-radius:9px;cursor:pointer}.restore-input input{font-size:12px;min-height:38px;max-width:230px} .deal-top{gap:8px}.chunk-list{margin-bottom:11px} textarea{display:block;width:100%;min-height:85px;margin:6px 0 12px;padding:10px;border:1px solid #c7d3da;border-radius:10px;font:inherit;font-size:16px}pre.greeting-sample{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;background:#f6f9fa;border:1px solid #dce5eb;border-radius:10px;font:13px/1.6 -apple-system,BlinkMacSystemFont,sans-serif}
+
+
+/* LAB 07 visual restoration: v0.5 official palette and centered information.
+   Presentation only; keep inventory, transaction and backup behavior unchanged. */
+#inventory .product{
+  position:relative;
+  border:1px solid #e0e7ee;
+  box-shadow:0 2px 8px #14263c0a;
+}
+#inventory .product::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:7px;
+  background:#6cae9f;z-index:1;pointer-events:none;
+}
+#inventory .product:nth-child(4n + 1){background:#f3faf7}
+#inventory .product:nth-child(4n + 1)::before{background:#6cae9f}
+#inventory .product:nth-child(4n + 2){background:#faf5fc}
+#inventory .product:nth-child(4n + 2)::before{background:#b68ac8}
+#inventory .product:nth-child(4n + 3){background:#fdf9ef}
+#inventory .product:nth-child(4n + 3)::before{background:#c8a461}
+#inventory .product:nth-child(4n + 4){background:#f2f8fe}
+#inventory .product:nth-child(4n + 4)::before{background:#7eaad4}
+#inventory .product .product-head{
+  background:transparent;
+  text-align:center;
+  padding:17px 16px 14px;
+  border-bottom:1px solid #dfe7ed;
+}
+#inventory .product .product-head h3{
+  margin:0;font-size:18px;line-height:1.4;font-weight:800;
+  color:#23313c;overflow-wrap:anywhere;text-align:center;
+}
+#inventory .product .total-label{
+  color:#526273;font-size:12px;margin-top:8px;text-align:center;
+}
+#inventory .product .total{
+  display:flex;justify-content:center;align-items:baseline;gap:5px;
+  font-size:33px;font-weight:850;line-height:1.2;color:#08735e;
+  text-align:center;
+}
+#inventory .product .store{
+  border:1px solid #dce5eb;
+  background:rgba(255,255,255,.85);
+  text-align:center;
+}
+#inventory .product .store[data-store=seven]{border-top:5px solid #d98553}
+#inventory .product .store[data-store=famima]{border-top:5px solid #2b9a92}
+#inventory .product .store[data-store=lawson]{border-top:5px solid #518cc5}
+#inventory .product .store-head{justify-content:center;text-align:center}
+#inventory .product .metric{text-align:center}
+#inventory .product .op-history{text-align:center}
+#inventory .product .fields label{text-align:left}
+#inventory .product .fields select{
+  text-align:center;text-align-last:center;
+}
+#deals .deals{
+  text-align:center;padding:16px 0 18px;
+  border-bottom:1px solid #dfe6ec;
+}
+#deals .deal-top{justify-content:center;text-align:center;gap:9px;margin-bottom:11px}
+#deals .deal-top strong{
+  flex-basis:100%;font-size:19px;font-weight:800;line-height:1.4;color:#23313c;
+}
+#deals .deal-top .badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;padding:5px 13px;line-height:1.5;
+}
+#deals .deal-detail{background:#f7fafb;text-align:center}
+#deals .deal-product{text-align:center}
+#deals .deal-bottom{justify-content:center;flex-wrap:wrap;gap:10px 16px}
+#deals .deal-store{justify-content:center}
+#deals .chunk{text-align:center}
+#deals .chunk .row{justify-content:center}
+#deals .deals>button[data-action=cancel]{display:block;margin:10px auto 0}
+@media(max-width:360px){
+  #inventory .product .product-head h3{font-size:16px}
+  #inventory .product .total{font-size:29px}
+  #deals .deal-top strong{font-size:17px}
+}
+
+
+/* LAB07 template appearance: restore v0.5 centered controls and three greeting tones.
+   CSS-only patch. Keep user-editable message body left-aligned for readability. */
+#greetingEditor h2,
+#greetingEditor > .hint,
+#greetingEditor > label,
+#greetingEditor #greetingStatus { text-align:center; }
+#greetingEditor > label { display:block; margin:15px 0 12px; font-weight:750; }
+#greetingEditor #editGreetingKind {
+  display:block; width:100%; min-height:52px;
+  text-align:center; text-align-last:center;
+  border:2px solid #a5cfc4; background:#eaf4f1;
+  color:#176c5c; font-weight:750; border-radius:12px;
+  padding:11px 30px 11px 12px;
+}
+#greetingEditor #editGreetingKind:has(option[value="repeat"]:checked) {
+  border-color:#b9cae7; background:#eef2fa; color:#3f609c;
+}
+#greetingEditor #editGreetingKind:has(option[value="regular"]:checked) {
+  border-color:#d7bce4; background:#f6eff9; color:#805397;
+}
+#greetingEditor #greetingIntro,
+#greetingEditor #greetingClosing {
+  text-align:left; background:#fff; color:#24313b;
+}
+#greetingEditor > .row { justify-content:center; gap:10px; margin:13px 0 10px; }
+#greetingEditor > .row button { flex:1 1 135px; max-width:330px; }
+#greetingEditor #greetingStatus { margin:10px 0; }
+#greetingEditor pre.greeting-sample {
+  border-color:#a5cfc4; background:#f3faf7; color:#24313b;
+  text-align:left;
+}
+#greetingEditor:has(#editGreetingKind option[value="repeat"]:checked) pre.greeting-sample {
+  border-color:#b9cae7; background:#f5f7fc;
+}
+#greetingEditor:has(#editGreetingKind option[value="regular"]:checked) pre.greeting-sample {
+  border-color:#d7bce4; background:#fbf6fc;
+}
 </style></head><body>
 <h1>クーポン管理 <span class="badge">店舗別送付統合 LAB 07</span></h1><p class="sub">iPhone Safari専用想定・独立実験版・旧版・LAB 05と別の保存領域</p>
 <div class="warning">⚠️ 独立した実験版です。まずダミーURLで検証してください。送付管理の統合を検証する独立実験版です。旧版からの移行は未対応。実際の当選URLは登録しないでください。</div>
