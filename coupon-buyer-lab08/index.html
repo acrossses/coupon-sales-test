@@ -294,6 +294,18 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 #buyerLedger .buyer-form-actions{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}
 #buyerLedger .buyer-form-actions button{flex:1 1 135px;min-width:0}
 #buyerLedger .buyer-edit-caption{margin:7px 0 0}
+
+/* LAB 08: compact buyer matches. Warnings appear once per result group. */
+#buyerLedger .buyer-warning{font-size:13px;line-height:1.55;font-weight:650;margin:10px 0 12px;padding:10px 12px}
+#buyerLedger .buyer-result{margin:8px 0;padding:12px 13px}
+#buyerLedger .buyer-result-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#buyerLedger .buyer-result-head h3{margin:0;font-size:17px;line-height:1.35;flex:1;min-width:0}
+#buyerLedger .buyer-result-head .badge{flex-shrink:0}
+#buyerLedger .buyer-result p{font-size:13px;line-height:1.45;margin:5px 0}
+#buyerLedger .buyer-result .buyer-alias{font-weight:650;color:#445d6b}
+#buyerLedger .buyer-result button{margin-top:9px;min-height:42px}
+#buyerLedger .buyer-results-hint{font-size:12px;line-height:1.5;color:#586f7c;margin:11px 0 1px;text-align:center}
+
 </style></head><body>
 <h1>クーポン管理 <span class="badge">購入者台帳 LAB 08・検索UI版</span></h1><p class="sub">iPhone Safari向け・購入者台帳の独立検証版・RC1とは保存領域を分離</p>
 <div class="warning">⚠️ 購入者台帳LAB 08です。RC1・LAB 07とは別の保存領域です。実際の購入者ID・当選URLはまだ登録せず、ダミー情報で検証してください。</div>
@@ -538,7 +550,9 @@ function renderBuyers(){
  if(!q){r.innerHTML='<p class="hint">先頭3文字・任意ID・表示名・識別メモで検索してください。初期状態では一覧を表示しません。</p>';return;}
  if(!found.length){r.innerHTML='<p class="empty">一致する記録はありません。</p>';return;}
  const prefixCounts=new Map();for(const v of buyers.records)prefixCounts.set(v.prefix,(prefixCounts.get(v.prefix)||0)+1);
- r.innerHTML=found.map(v=>`<div class="buyer-result"><h3>${esc(v.displayName||v.fullId||v.prefix)}｜${esc(v.alias)}</h3><p>${v.prefix?`ID先頭：${esc(v.prefix)}　`:``}${v.fullId?`任意ID：${esc(v.fullId)}`:``}</p><p>挨拶候補：<span class="badge greeting-kind-badge" data-tone="${esc(v.kind)}">${esc(GREETING_KINDS[v.kind])}</span>　評価：${esc(RATING_LABELS[v.rating])}</p>${v.note?`<p>備考：${esc(v.note)}</p>`:''}${prefixCounts.get(v.prefix)>1?'<div class="buyer-warning">⚠️ 同じ先頭3文字の別記録があります。本人確認が必要です。</div>':''}<p class="hint">この結果は候補です。確保時の挨拶は自動変更されません。</p><button type="button" data-buyer-edit="${esc(v.id)}">この記録を編集</button></div>`).join('');
+ const ambiguousPrefixes=[...new Set(found.filter(v=>v.prefix&&prefixCounts.get(v.prefix)>1).map(v=>v.prefix))];
+ const warning=ambiguousPrefixes.length?`<div class="buyer-warning" role="note">⚠️ 同じID先頭3文字の別記録があります（${ambiguousPrefixes.map(esc).join('・')}）。候補を比較し、本人確認は手動で行ってください。</div>`:'';
+ r.innerHTML=warning+found.map(v=>`<div class="buyer-result"><div class="buyer-result-head"><h3>${esc(v.displayName||v.fullId||v.prefix)}</h3><span class="badge greeting-kind-badge" data-tone="${esc(v.kind)}">${esc(GREETING_KINDS[v.kind])}</span></div>${v.alias?`<p class="buyer-alias">${esc(v.alias)}</p>`:''}<p class="buyer-identity">${v.fullId?`任意ID：${esc(v.fullId)}`:v.prefix?`ID先頭：${esc(v.prefix)}`:''}${v.fullId&&v.prefix?`　／　先頭：${esc(v.prefix)}`:''}</p><p class="buyer-meta">評価：${esc(RATING_LABELS[v.rating])}${v.note?`　／　備考：${esc(v.note)}`:''}</p><button type="button" data-buyer-edit="${esc(v.id)}">この記録を編集</button></div>`).join('')+`<p class="buyer-results-hint">検索結果は照合候補です。挨拶は自動適用されません。</p>`;
  if(buyerMatches(buyers,q).length>30)r.insertAdjacentHTML('beforeend','<p class="hint">30件まで表示。検索文字を追加してください。</p>');
 }
 $('buyerSearch').addEventListener('input',renderBuyers);
