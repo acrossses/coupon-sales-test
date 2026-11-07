@@ -248,12 +248,38 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 #deals .deal-product .greeting-kind-badge[data-tone="regular"]{
   background:#f6eff9;color:#805397;border-color:#d7bce4;
 }
+
+/* LAB 07 display-only refinement: readable duplicate results and tucked-away test controls. */
+#checkResults .check-item{font-size:15px;line-height:1.65;padding:12px 13px;margin:9px 0;overflow-wrap:anywhere;}
+#checkResults .check-item select{font-size:16px;line-height:1.4;}
+.lab07-dev-panel summary{cursor:pointer;}
+.lab07-dev-panel>summary{font-weight:800;font-size:16px;line-height:1.5;}
+.lab07-dev-panel .lab07-dev-seed{padding:14px 0 12px;border-top:1px solid #e1e9ee;margin-top:14px;}
+.lab07-dev-panel .lab07-dev-label{font-size:14px;font-weight:800;margin:0 0 5px;}
+.lab07-dev-panel .lab07-dev-danger{border:1px solid #ebc1bb;border-radius:10px;background:#fffafa;padding:12px;margin:6px 0 12px;}
+.lab07-dev-panel .lab07-dev-danger summary{font-size:14px;font-weight:750;color:#9b3c31;}
+.lab07-dev-panel .lab07-dev-danger p{margin-top:12px;line-height:1.65;}
+.lab07-dev-panel #notice:not(:empty){margin-top:12px;font-size:13px;line-height:1.6;}
 </style></head><body>
 <h1>クーポン管理 <span class="badge">店舗別送付統合 LAB 07</span></h1><p class="sub">iPhone Safari専用想定・独立実験版・旧版・LAB 05と別の保存領域</p>
 <div class="warning">⚠️ 独立した実験版です。まずダミーURLで検証してください。送付管理の統合を検証する独立実験版です。旧版からの移行は未対応。実際の当選URLは登録しないでください。</div>
 <details class="card" id="debugPanel"><summary>🛠 デバッグ・自己診断（開発用）</summary><p class="hint">テストはメモリ内のダミーデータで実行し、実験在庫は変更しません。ログにURL全文は記録しません。</p><div class="row"><button type="button" id="runTests">自動テスト実行</button><button type="button" id="copyLog">ログをコピー</button></div><div id="testResult" class="hint" aria-live="polite">未実施</div><pre id="debugLog" class="debug-log" aria-live="polite"></pre></details>
 <section class="card"><h2>① URL一括登録（新機能）</h2><p class="hint">URLを1行1件で入力。店舗は既知のドメインだけ仮判定し、不明なURLは手動で選択します。商品名はURLから推測しません。</p><label>商品名（必須）<input id="newProduct" placeholder="例：金麦 350ml" maxlength="100" autocomplete="off"></label><label>URL（1行1件）<textarea id="urlInput" rows="5" placeholder="https://coupon.sej.co.jp/test/001&#10;https://ncpfa.famima.com/test/002"></textarea></label><button type="button" id="checkUrls" class="primary action">重複・店舗判定を確認</button><div id="checkSummary" role="status" aria-live="polite"></div><div id="checkResults"></div><button type="button" id="commitUrls" class="primary action" hidden>確認した新規URLを登録</button></section>
-<section class="card"><h2>② ダミー在庫</h2><p class="hint">金麦350mlのセブン7件・ファミマ5件をまとめて追加します。別々の店舗として管理します。</p><div class="row"><button id="seed" class="primary">テスト在庫を追加（12件）</button><button id="clear" class="danger">実験データを初期化</button></div><div id="notice" role="status" aria-live="polite"></div></section>
+<details class="card lab07-dev-panel" id="lab07DevPanel">
+<summary>② 開発・テスト用（通常は開かない）</summary>
+<p class="hint">ここは実験版の検証操作専用です。通常のURL登録・確保・送付では使用しません。</p>
+<div class="lab07-dev-seed">
+  <p class="lab07-dev-label">ダミー在庫投入</p>
+  <p class="hint">金麦350mlのセブン7件・ファミマ5件、計12件を追加します。</p>
+  <button type="button" id="seed" class="primary">テスト在庫を追加（12件）</button>
+</div>
+<details class="lab07-dev-danger" id="lab07ResetPanel">
+  <summary>実験データの初期化（危険な操作）</summary>
+  <p class="hint">このLAB 07の在庫・取引・送付履歴・設定を削除します。ダミー投入とは別の操作です。必要なら先にバックアップを保存してください。</p>
+  <button type="button" id="clear" class="danger">実験データを初期化</button>
+</details>
+<div id="notice" role="status" aria-live="polite"></div>
+</details>
 <section class="card"><h2>③ 商品・店舗別在庫一覧</h2><p class="hint">全店舗の登録総数は送付済みも含みます。店舗ごとに「利用可能・確保中・送付済み」を表示し、利用可能数のみ確保できます。</p><div id="inventory" aria-live="polite"><div class="empty">在庫なし</div></div></section>
 <section class="card"><h2>④ 確保・送付管理（実験）</h2><p class="hint">送付内容を確認 → コピー準備（取消不可） → 実際の送信後に「送信済みを確認」。最大6件ずつ、1通1024文字以内。コピー操作だけでは送付済みにしません。</p><div id="deals"><div class="empty">取引なし</div></div></section>
 
