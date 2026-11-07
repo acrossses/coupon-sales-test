@@ -320,6 +320,12 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
   margin-bottom:5px;
 }
 
+
+/* LAB 08: backup destination clarity, no changes to data operations. */
+.backup-kind-note{font-size:15px;line-height:1.65;margin:12px 0;padding:10px 12px;border-left:3px solid #769bb4;background:#f4f8fb;color:#263f50;border-radius:5px}
+.buyer-backup-group>summary{font-weight:700}
+.url-backup-group h2{margin-bottom:10px}
+
 </style></head><body>
 <h1>クーポン管理 <span class="badge">購入者台帳 LAB 08・検索UI版</span></h1><p class="sub">iPhone Safari向け・購入者台帳の独立検証版・RC1とは保存領域を分離</p>
 <div class="warning">⚠️ 購入者台帳LAB 08です。RC1・LAB 07とは別の保存領域です。実際の購入者ID・当選URLはまだ登録せず、ダミー情報で検証してください。</div>
@@ -383,15 +389,15 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 <div class="buyer-form-actions"><button type="button" id="buyerSave" class="primary">確認して登録</button><button type="button" id="buyerClear">入力をクリア</button></div>
 <p class="hint buyer-edit-caption" id="buyerEditHelp">検索結果の「この記録を編集」から対象を明示的に選択します。先頭3文字だけで上書きしません。</p>
 </details>
-<details class="closing-details"><summary>購入者台帳のバックアップ・復元</summary>
-<p class="hint">URL・取引バックアップとは別ファイルです。保存先を選ぶ共有メニューを優先します。異なる内容の復元は台帳が空の時だけ、確認付きで許可します。</p>
+<details class="closing-details backup-group buyer-backup-group"><summary>⑤ 購入者台帳専用｜バックアップ・復元</summary>
+<p class="backup-kind-note"><strong>ここは購入者台帳専用です。</strong> 購入者のID・表示名・識別メモを保存・復元します。URL・取引のJSONは⑥を使用してください。</p><p class="hint">保存先を選ぶ共有メニューを優先します。異なる内容の復元は台帳が空の時だけ、確認付きで許可します。</p>
 <label>バックアップ名<input id="buyerBackupName" maxlength="70" placeholder="例：台帳バックアップ_20261108" autocomplete="off"></label>
 <div class="row"><button type="button" id="buyerExport">台帳JSONを保存</button><label class="restore-input">台帳JSONを選択<input id="buyerImportFile" type="file" accept="application/json,.json"></label></div>
 <button type="button" id="buyerImport">台帳を検査して復元</button>
 </details>
 <p id="buyerStatus" class="hint" role="status" aria-live="polite">検索・登録はダミー情報で確認してください。半角・全角カタカナと英字大小は検索時に吸収します。</p>
 </section>
-<section class="card"><h2>⑥ URL・取引のJSONバックアップ・復元</h2><p class="hint">バックアップには登録URL・確保・コピー準備・送付記録を含みます。復元は、データが完全一致すれば変更せず終了します。異なるデータの復元は未使用の初期状態だけに限定し、件数確認後に実行します。既存の送付履歴を巻き戻す操作は拒否します。</p><label for="backupName">バックアップのファイル名（任意・保存前に入力）<input id="backupName" type="text" maxlength="80" placeholder="例：送付前_20261107" autocomplete="off"></label><p class="hint">iPhone Safariでは共有メニューの「ファイルに保存」で保存先を選択。非対応環境では通常ダウンロードに切り替えます。</p><div class="row"><button type="button" id="backupExport">バックアップを保存</button><label class="restore-input">JSONファイルを選択<input id="backupFile" type="file" accept="application/json,.json"></label></div><button type="button" id="backupImport">バックアップを検査して復元</button><p id="backupStatus" class="hint" role="status" aria-live="polite"></p></section>
+<section class="card url-backup-group"><h2>⑥ URL・取引専用｜JSONバックアップ・復元</h2><p class="backup-kind-note"><strong>ここはURL・取引専用です。</strong> 購入者台帳のJSONを復元する場合は⑤の「購入者台帳専用」を開いてください。</p><p class="hint">バックアップには登録URL・確保・コピー準備・送付記録を含みます。復元は、データが完全一致すれば変更せず終了します。異なるデータの復元は未使用の初期状態だけに限定し、件数確認後に実行します。既存の送付履歴を巻き戻す操作は拒否します。</p><label for="backupName">バックアップのファイル名（任意・保存前に入力）<input id="backupName" type="text" maxlength="80" placeholder="例：送付前_20261107" autocomplete="off"></label><p class="hint">iPhone Safariでは共有メニューの「ファイルに保存」で保存先を選択。非対応環境では通常ダウンロードに切り替えます。</p><div class="row"><button type="button" id="backupExport">バックアップを保存</button><label class="restore-input">JSONファイルを選択<input id="backupFile" type="file" accept="application/json,.json"></label></div><button type="button" id="backupImport">バックアップを検査して復元</button><p id="backupStatus" class="hint" role="status" aria-live="polite"></p></section>
 <p class="footer">LAB 08は独立した保存キー <code>coupon_sales_buyer_lab08</code> を使用します。RC1・LAB 07・旧正式版のデータを読み書きしません。購入者台帳はさらに別キーに保存し、別ファイルでバックアップします。改訂版は初版台帳キーを読みません。</p>
 <script>
 (()=>{'use strict';
@@ -497,7 +503,7 @@ $('backupImport').addEventListener('click',async()=>{try{
  const file=$('backupFile').files?.[0];if(!file)throw Error('JSONファイルを選択してください');
  if(file.size>8*1024*1024)throw Error('ファイルが大きすぎます');
  const payload=JSON.parse(await file.text());
- if(payload.schema!==BACKUP_SCHEMA)throw Error('別バージョンのバックアップです');
+ if(payload.schema!==BACKUP_SCHEMA)throw Error(backupTypeError(payload,'url'));
  strictCheck(payload.data);strictCheck(db);
  const decision=restoreDecision(db,payload.data);
  if(decision==='unchanged'){
@@ -528,6 +534,14 @@ loadGreetingEditor();
 /* Buyer ledger LAB08: different storage key, manual identification, separate backup. */
 const BUYER_KEY='coupon_sales_buyer_lab08_registry_v2';
 const BUYER_SCHEMA='coupon-buyer-ledger-lab08-v2';
+// A mismatched schema is never restored. Give the correct destination only when known.
+function backupTypeError(payload,target){
+ const schema=payload?.schema;
+ if(target==='url'&&schema===BUYER_SCHEMA)return '購入者台帳のJSONです。⑤「購入者台帳専用」の復元欄を使用してください。データは変更していません。';
+ if(target==='buyer'&&schema===BACKUP_SCHEMA)return 'URL・取引のJSONです。⑥「URL・取引専用」の復元欄を使用してください。データは変更していません。';
+ return 'この復元欄に対応しないJSON形式・バージョンです。データは変更していません。';
+}
+
 const RATING_LABELS={unknown:'未確認',mutual:'相互評価あり',oneway:'片側のみ・未完了',none:'評価なし'};
 function normalizeBuyerSearch(s){return String(s??'').normalize('NFKC').trim().toLowerCase();}
 function cleanBuyerPrefix(s){return normalizeBuyerSearch(s);}
@@ -593,7 +607,7 @@ $('buyerExport').addEventListener('click',async()=>{try{
 $('buyerImport').addEventListener('click',async()=>{try{
  if(buyerBlocked)throw Error('保存データの異常を検出しています');
  const file=$('buyerImportFile').files?.[0];if(!file)throw Error('台帳JSONを選択してください');if(file.size>1024*1024)throw Error('ファイルが大きすぎます');
- const incoming=JSON.parse(await file.text());validateBuyerLedger(incoming);
+ const incoming=JSON.parse(await file.text());if(incoming?.schema!==BUYER_SCHEMA)throw Error(backupTypeError(incoming,'buyer'));validateBuyerLedger(incoming);
  if(JSON.stringify(incoming)===JSON.stringify(buyers)){$('buyerStatus').textContent='台帳は完全一致：復元は行っていません（変更なし）。';return;}
  if(buyers.records.length)throw Error('登録済み台帳があるため上書き復元を拒否しました');
  if(!confirm(`購入者台帳 ${incoming.records.length}件を空の台帳へ復元しますか？\nRC1の在庫や取引は変更されません。`)){$('buyerStatus').textContent='復元をキャンセルしました。';return;}
@@ -617,6 +631,8 @@ run('台帳：複数挨拶区分',()=>['normal','repeat','regular'].every(k=>mak
 run('台帳：同じ3文字は候補が複数',()=>{const t={schema:BUYER_SCHEMA,records:[makeBuyerRecord('abc','A','normal','unknown',''),makeBuyerRecord('abc','B','repeat','unknown','')]};validateBuyerLedger(t);return buyerMatches(t,'abc').length===2});
 run('台帳：同一識別メモの重複拒否',()=>{const a=makeBuyerRecord('abc','A','normal','unknown',''),b=makeBuyerRecord('abc','A','repeat','unknown','');try{validateBuyerLedger({schema:BUYER_SCHEMA,records:[a,b]});return false}catch{return true}});
 run('台帳：検索の絞り込み',()=>{const t={records:[makeBuyerRecord('abc','商品A','normal','unknown',''),makeBuyerRecord('xyz','商品B','repeat','unknown','')]};return buyerMatches(t,'xyz').length===1&&buyerMatches(t,'商品A').length===1});
+run('台帳JSONをURL復元へ入れると⑤を案内',()=>backupTypeError({schema:BUYER_SCHEMA},'url').includes('⑤')&&backupTypeError({schema:BUYER_SCHEMA},'url').includes('変更していません'));
+run('URL JSONを台帳復元へ入れると⑥を案内',()=>backupTypeError({schema:BACKUP_SCHEMA},'buyer').includes('⑥')&&backupTypeError({schema:BACKUP_SCHEMA},'buyer').includes('変更していません'));
 run('台帳：別形式JSON拒否',()=>{try{validateBuyerLedger({schema:'wrong',records:[]});return false}catch{return true}});
 run('台帳：フルID保存',()=>makeBuyerRecord('','test','normal','unknown','',undefined,undefined,'beerlover2026','トシ').fullId==='beerlover2026');
 run('台帳：日本語表示名保存',()=>makeBuyerRecord('abc','test','normal','unknown','',undefined,undefined,'','カタカナ太郎').displayName==='カタカナ太郎');
