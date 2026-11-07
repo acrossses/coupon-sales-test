@@ -193,6 +193,23 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
   transform:translateY(-70%) rotate(45deg);
   pointer-events:none;
 }
+
+/* LAB07: unified centered inventory selectors (CSS only).
+   Equal horizontal padding keeps native option text centered visually;
+   a background chevron is independent of the text's alignment. */
+#inventory .product .fields select.greeting-kind,
+#inventory .product .fields select.qty {
+  -webkit-appearance:none;
+  appearance:none;
+  text-align:center;
+  text-align-last:center;
+  padding-left:52px;
+  padding-right:52px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3 6l5 5 5-5' fill='none' stroke='%2324313b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position:right 25px center;
+  background-repeat:no-repeat;
+  background-size:16px 16px;
+}
 </style></head><body>
 <h1>クーポン管理 <span class="badge">店舗別送付統合 LAB 07</span></h1><p class="sub">iPhone Safari専用想定・独立実験版・旧版・LAB 05と別の保存領域</p>
 <div class="warning">⚠️ 独立した実験版です。まずダミーURLで検証してください。送付管理の統合を検証する独立実験版です。旧版からの移行は未対応。実際の当選URLは登録しないでください。</div>
