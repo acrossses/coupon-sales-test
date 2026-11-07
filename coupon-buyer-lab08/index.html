@@ -261,28 +261,41 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 .lab07-dev-panel .lab07-dev-danger p{margin-top:12px;line-height:1.65;}
 #notice:not(:empty){margin-top:12px;font-size:13px;line-height:1.6;}
 
-/* LAB08 customer ledger: visually separated from coupon/deal state. */
-#buyerLedger .buyer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-#buyerLedger .buyer-grid label{min-width:0}
-#buyerLedger .buyer-grid .full{grid-column:1/-1}
-#buyerLedger .buyer-tip{background:#edf5f9;border:1px solid #c9dfe9;border-radius:10px;padding:10px;font-size:12px;line-height:1.65;margin:10px 0}
-#buyerLedger #buyerResults{margin-top:13px}
-#buyerLedger .buyer-result{border:1px solid #d9e4ea;border-radius:12px;margin:9px 0;padding:12px;background:#fafcfe}
-#buyerLedger .buyer-result h3{margin:0 0 6px;font-size:16px;overflow-wrap:anywhere}
-#buyerLedger .buyer-result p{margin:5px 0;color:#4e6271;font-size:13px;overflow-wrap:anywhere}
+/* LAB08 compact search-first ledger; existing IDs/handlers/storage untouched. */
+#buyerLedger .buyer-search-panel{padding:14px;border:1px solid #d5e4e9;border-radius:14px;background:#f8fbfc;margin:12px 0}
+#buyerLedger .buyer-search-panel label{margin:0;font-weight:800}
+#buyerLedger #buyerSearch{background:white;margin-top:8px}
+#buyerLedger .buyer-grid{display:grid;grid-template-columns:1fr;gap:11px}
+#buyerLedger .buyer-grid label{min-width:0;display:block}
+#buyerLedger .buyer-grid .full{grid-column:auto}
+#buyerLedger .buyer-grid label input,#buyerLedger .buyer-grid label select,#buyerLedger .buyer-grid label textarea{width:100%;box-sizing:border-box;margin-top:6px}
+#buyerLedger .buyer-tip{background:#edf5f9;border:1px solid #c9dfe9;border-radius:10px;padding:10px;font-size:12px;line-height:1.6;margin:10px 0}
+#buyerLedger .buyer-tip-brief{margin:0 0 10px;color:#4c6877;font-size:13px;line-height:1.65}
+#buyerLedger #buyerResults{margin-top:9px}
+#buyerLedger .buyer-result{border:1px solid #d9e4ea;border-radius:12px;margin:9px 0;padding:13px;background:#fafcfe}
+#buyerLedger .buyer-result h3{margin:0 0 6px;font-size:17px;overflow-wrap:anywhere}
+#buyerLedger .buyer-result p{margin:5px 0;color:#4e6271;font-size:13px;overflow-wrap:anywhere;line-height:1.55}
 #buyerLedger .buyer-warning{color:#995819;background:#fff4df;border:1px solid #efd6a5;padding:9px;border-radius:9px;font-size:12px;margin:8px 0}
 #buyerLedger .buyer-result button{margin-top:8px;width:100%}
 #buyerLedger .buyer-result .greeting-kind-badge{background:#eaf4f1;color:#176c5c;border:1px solid #a5cfc4}
 #buyerLedger .buyer-result .greeting-kind-badge[data-tone="repeat"]{background:#eef2fa;color:#3f609c;border-color:#b9cae7}
 #buyerLedger .buyer-result .greeting-kind-badge[data-tone="regular"]{background:#f6eff9;color:#805397;border-color:#d7bce4}
-
 #buyerLedger #buyerStatus{font-size:13px;white-space:pre-wrap;line-height:1.6}
-#buyerLedger .buyer-count{font-weight:750;text-align:center;margin:12px 0;color:#425c6b}
+#buyerLedger .buyer-count{font-weight:750;text-align:center;margin:7px 0;color:#425c6b}
+#buyerLedger #buyerEditDetails{margin-top:14px}
+#buyerLedger #buyerEditDetails>summary{font-weight:800;text-align:center;cursor:pointer}
+#buyerLedger #buyerEditDetails[open]>summary{margin-bottom:14px}
 #buyerLedger .buyer-actions{margin-top:14px}
-#buyerLedger #buyerSearch{background:#f3f8fb}
-@media(max-width:350px){#buyerLedger .buyer-grid{grid-template-columns:1fr}#buyerLedger .buyer-grid .full{grid-column:auto}}
+#buyerLedger #buyerKind{appearance:none;-webkit-appearance:none;text-align:center;text-align-last:center;font-weight:800;padding:12px 50px;background:#eaf4f1;color:#176c5c;border:2px solid #a5cfc4;border-radius:11px}
+#buyerLedger .buyer-kind-wrap{position:relative}
+#buyerLedger .buyer-kind-wrap::after{content:"";position:absolute;right:23px;bottom:24px;width:10px;height:10px;border-right:3px solid #263d44;border-bottom:3px solid #263d44;transform:rotate(45deg);pointer-events:none}
+#buyerLedger .buyer-kind-wrap:has(#buyerKind option[value="repeat"]:checked) #buyerKind{background:#eef2fa;color:#3f609c;border-color:#b9cae7}
+#buyerLedger .buyer-kind-wrap:has(#buyerKind option[value="regular"]:checked) #buyerKind{background:#f6eff9;color:#805397;border-color:#d7bce4}
+#buyerLedger .buyer-form-actions{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}
+#buyerLedger .buyer-form-actions button{flex:1 1 135px;min-width:0}
+#buyerLedger .buyer-edit-caption{margin:7px 0 0}
 </style></head><body>
-<h1>クーポン管理 <span class="badge">購入者台帳 LAB 08</span></h1><p class="sub">iPhone Safari向け・購入者台帳の独立検証版・RC1とは保存領域を分離</p>
+<h1>クーポン管理 <span class="badge">購入者台帳 LAB 08・検索UI版</span></h1><p class="sub">iPhone Safari向け・購入者台帳の独立検証版・RC1とは保存領域を分離</p>
 <div class="warning">⚠️ 購入者台帳LAB 08です。RC1・LAB 07とは別の保存領域です。実際の購入者ID・当選URLはまだ登録せず、ダミー情報で検証してください。</div>
 <details class="card lab07-dev-panel" id="lab07DevPanel">
 <summary>🛠 自動テスト・診断ログ（通常は閉じる）</summary>
@@ -324,25 +337,29 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 
 <section class="card" id="buyerLedger">
 <h2>⑤ 購入者台帳（検証版）</h2>
-<p class="hint">購入者の識別を補助します。挨拶は候補表示のみで、取引への自動適用はしません。ID先頭3文字だけでは本人を特定できません。</p>
-<div class="buyer-tip">🔒 購入者の照合は手動です。本人の同意なく本名・住所などの不要な個人情報を登録しないでください。表示名や先頭3文字が一致しても、同一人物とは限りません。</div>
-<label for="buyerSearch">検索（ID先頭3文字・任意ID・表示名・識別メモ）<input id="buyerSearch" placeholder="例：abc / ﾄｼ / トシ" maxlength="60" autocomplete="off"></label>
-<div id="buyerCount" class="buyer-count">購入者台帳：0件</div><div id="buyerResults" aria-live="polite"></div>
-<details id="buyerEditDetails" class="closing-details"><summary>購入者を登録・情報を更新</summary>
+<p class="buyer-tip-brief">検索して候補を確認。新規登録・編集は必要なときだけ開きます。挨拶区分は自動で取引に反映しません。</p>
+<div class="buyer-search-panel">
+<label for="buyerSearch">購入者を検索<input id="buyerSearch" placeholder="ID・表示名・識別メモで検索" maxlength="60" autocomplete="off"></label>
+<div id="buyerCount" class="buyer-count">購入者台帳：0件</div>
+<div id="buyerResults" aria-live="polite"></div>
+</div>
+<details id="buyerEditDetails" class="closing-details"><summary>＋ 新しい購入者を登録・情報を編集</summary>
+<div class="buyer-tip">🔒 同じ先頭3文字や表示名でも別人の可能性があります。本人の照合は手動で行い、実名・住所など不要な個人情報は登録しないでください。</div>
 <div class="buyer-grid">
-<label>ID先頭3文字（任意IDがあれば省略可）<input id="buyerPrefix" maxlength="3" placeholder="abc" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
-<label>挨拶の候補<select id="buyerKind"><option value="normal">通常</option><option value="repeat">リピーター</option><option value="regular">常連</option></select></label>
-<label class="full">任意ID・カスタムID（分かる場合）<input id="buyerFullId" maxlength="80" placeholder="例：beerlover2026 / トシ商店" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
-<label class="full">表示名・ニックネーム（日本語OK）<input id="buyerDisplayName" maxlength="80" placeholder="例：トシ / ﾄｼ / とし" autocomplete="off"></label>
-<label class="full">識別メモ（同じ先頭文字の別人を区別する手がかり）<input id="buyerAlias" maxlength="80" placeholder="例：取引日時・商品など（個人情報は不要）" autocomplete="off"></label>
-<label class="full">評価の状況<select id="buyerRating"><option value="unknown">未確認</option><option value="mutual">相互評価あり</option><option value="oneway">片側のみ・未完了</option><option value="none">評価なし</option></select></label>
-<label class="full">備考（任意）<textarea id="buyerNote" maxlength="200" rows="2" placeholder="実名などの個人情報を入力しない"></textarea></label>
-</div><div class="row"><button type="button" id="buyerSave" class="primary">確認して登録</button><button type="button" id="buyerClear">入力をクリア</button></div>
-<p class="hint" id="buyerEditHelp">台帳の更新は検索結果の「この記録を編集」から選択します。ID先頭3文字だけで既存記録を上書きしません。</p>
+<label>ID先頭3文字（任意IDがあれば省略可）<input id="buyerPrefix" maxlength="3" placeholder="例：abc" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+<label>任意ID・カスタムID（分かる場合）<input id="buyerFullId" maxlength="80" placeholder="例：sample_user2026" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+<label>表示名・ニックネーム（日本語OK）<input id="buyerDisplayName" maxlength="80" placeholder="例：サンプル花子 / ｻﾝﾌﾟﾙﾊﾅｺ" autocomplete="off"></label>
+<label>識別メモ（同じ先頭文字の別人を区別）<input id="buyerAlias" maxlength="80" placeholder="例：テスト取引A" autocomplete="off"></label>
+<label class="buyer-kind-wrap">挨拶区分（候補・手動確認）<select id="buyerKind"><option value="normal">通常</option><option value="repeat">リピーター</option><option value="regular">常連</option></select></label>
+<label>評価の状況<select id="buyerRating"><option value="unknown">未確認</option><option value="mutual">相互評価あり</option><option value="oneway">片側のみ・未完了</option><option value="none">評価なし</option></select></label>
+<label>備考（任意）<textarea id="buyerNote" maxlength="200" rows="2" placeholder="必要最小限のメモのみ"></textarea></label>
+</div>
+<div class="buyer-form-actions"><button type="button" id="buyerSave" class="primary">確認して登録</button><button type="button" id="buyerClear">入力をクリア</button></div>
+<p class="hint buyer-edit-caption" id="buyerEditHelp">検索結果の「この記録を編集」から対象を明示的に選択します。先頭3文字だけで上書きしません。</p>
 </details>
 <details class="closing-details"><summary>購入者台帳のバックアップ・復元</summary>
 <p class="hint">URL・取引バックアップとは別ファイルです。保存先を選ぶ共有メニューを優先します。異なる内容の復元は台帳が空の時だけ、確認付きで許可します。</p>
-<label>バックアップ名<input id="buyerBackupName" maxlength="70" placeholder="例：台帳_20261108" autocomplete="off"></label>
+<label>バックアップ名<input id="buyerBackupName" maxlength="70" placeholder="例：台帳バックアップ_20261108" autocomplete="off"></label>
 <div class="row"><button type="button" id="buyerExport">台帳JSONを保存</button><label class="restore-input">台帳JSONを選択<input id="buyerImportFile" type="file" accept="application/json,.json"></label></div>
 <button type="button" id="buyerImport">台帳を検査して復元</button>
 </details>
