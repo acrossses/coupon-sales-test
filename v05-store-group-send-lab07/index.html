@@ -145,6 +145,54 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 #greetingEditor:has(#editGreetingKind option[value="regular"]:checked) pre.greeting-sample {
   border-color:#d7bce4; background:#fbf6fc;
 }
+
+/* LAB07 greeting editor layout restoration, based on v0.5 official panel. */
+#greetingEditor .greeting-editor{margin-top:15px;text-align:center}
+#greetingEditor .greeting-field-label{display:block;font-weight:750;text-align:center;margin:12px 0 7px;line-height:1.45}
+#greetingEditor #editGreetingKind{width:100%;margin:3px 0 13px;min-height:52px;font-size:16px;box-sizing:border-box}
+#greetingEditor #greetingIntro,#greetingEditor #greetingClosing{
+ display:block;box-sizing:border-box;width:100%;min-height:100px;margin:6px 0 8px;
+ padding:12px;line-height:1.55;font-size:16px;border:1px solid #c8d4dc;
+ border-radius:11px;background:#fff;color:#23313c;text-align:left;white-space:pre-wrap;
+}
+#greetingEditor .greeting-editor-help{text-align:center;margin:7px 0 12px}
+#greetingEditor .closing-details{margin:15px 0;padding:12px 13px;border:1px solid #dae3e9;border-radius:12px;background:#fafbfd;text-align:left}
+#greetingEditor .closing-details summary{cursor:pointer;text-align:center;font-weight:750;min-height:28px;line-height:1.6}
+#greetingEditor .closing-details .summary-note{font-size:12px;font-weight:450;color:#637487}
+#greetingEditor .closing-details .greeting-field-label{margin-top:14px}
+#greetingEditor .greeting-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr);gap:9px;align-items:stretch;margin-top:16px}
+#greetingEditor .greeting-toolbar button{box-sizing:border-box;width:100%;min-width:0;min-height:49px;margin:0;padding:10px 8px;border-radius:10px;font-size:clamp(12px,3.3vw,16px);font-weight:750;line-height:1.45;white-space:nowrap;word-break:keep-all}
+#greetingEditor .greeting-secondary{text-align:center;margin:10px 0 4px}
+#greetingEditor .greeting-secondary button{font-size:12px;font-weight:650;padding:7px 12px;min-height:36px;background:#f8fafc;color:#43566a}
+#greetingEditor #greetingStatus{text-align:center;margin:10px 0;line-height:1.5}
+#greetingEditor pre.greeting-sample{margin:12px 0 0}
+@media(max-width:360px){#greetingEditor .greeting-toolbar{grid-template-columns:1fr}#greetingEditor .greeting-toolbar button{font-size:15px}}
+
+/* Select alignment correction: symmetric padding and independently positioned arrow.
+   Only the greeting editor dropdown is affected. Native select behavior is retained. */
+#greetingEditor .greeting-choice-wrap {position:relative;width:100%;}
+#greetingEditor .greeting-choice-wrap #editGreetingKind {
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  padding-left:52px;
+  padding-right:52px;
+  text-align:center;
+  text-align-last:center;
+  background-image:none;
+}
+#greetingEditor .greeting-choice-wrap::after {
+  content:"";
+  position:absolute;
+  right:25px;
+  top:50%;
+  width:10px;
+  height:10px;
+  border-right:2.5px solid #24313b;
+  border-bottom:2.5px solid #24313b;
+  transform:translateY(-70%) rotate(45deg);
+  pointer-events:none;
+}
 </style></head><body>
 <h1>クーポン管理 <span class="badge">店舗別送付統合 LAB 07</span></h1><p class="sub">iPhone Safari専用想定・独立実験版・旧版・LAB 05と別の保存領域</p>
 <div class="warning">⚠️ 独立した実験版です。まずダミーURLで検証してください。送付管理の統合を検証する独立実験版です。旧版からの移行は未対応。実際の当選URLは登録しないでください。</div>
@@ -157,10 +205,25 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 <section class="card" id="greetingEditor">
 <h2>⑤ 挨拶テンプレート（LAB 07）</h2>
 <p class="hint">通常・リピーター・常連の冒頭文と、共通の締め文を編集できます。保存した変更は新しい取引から適用。確保済みの取引文面は変わりません。</p>
-<label>編集する挨拶<select id="editGreetingKind"><option value="normal">通常のお客様</option><option value="repeat">リピーター</option><option value="regular">常連のお客様</option></select></label>
-<label>冒頭文<textarea id="greetingIntro" maxlength="500" rows="3" spellcheck="false"></textarea></label>
-<label>締め文（共通）<textarea id="greetingClosing" maxlength="500" rows="3" spellcheck="false"></textarea></label>
-<div class="row"><button id="previewGreeting" type="button">サンプル文</button><button class="primary" id="saveGreeting" type="button">テンプレートを保存</button></div>
+<div class="greeting-editor">
+  <label for="editGreetingKind" class="greeting-field-label">① 編集する冒頭文</label>
+  <div class="greeting-choice-wrap">
+    <select id="editGreetingKind" class="greeting-choice" aria-label="編集する挨拶"><option value="normal">通常のお客様</option><option value="repeat">リピーター</option><option value="regular">常連のお客様</option></select>
+  </div>
+  <label for="greetingIntro" class="greeting-field-label" id="greetingIntroLabel">通常のお客様向け・冒頭文</label>
+  <textarea id="greetingIntro" maxlength="500" rows="3" spellcheck="false"></textarea>
+  <p class="hint greeting-editor-help">切り替えても編集途中の文章は保持します。保存すると3種類まとめて確定します。</p>
+</div>
+<details class="closing-details" id="lab07ClosingDetails">
+  <summary>共通の締め文を編集 <span class="summary-note">（必要なときだけ開く）</span></summary>
+  <label for="greetingClosing" class="greeting-field-label">締め文（3種類共通）</label>
+  <textarea id="greetingClosing" maxlength="500" rows="3" spellcheck="false"></textarea>
+</details>
+<div class="greeting-toolbar">
+  <button id="previewGreeting" type="button">送付文サンプル</button>
+  <button class="primary" id="saveGreeting" type="button">テンプレートを保存</button>
+</div>
+<div class="greeting-secondary"><button id="restoreGreetingDraft" type="button">初期文を入力（未保存）</button></div>
 <div class="hint" id="greetingStatus" role="status" aria-live="polite">変更は保存ボタンで確定します。</div>
 <pre id="greetingSample" class="greeting-sample" hidden></pre>
 </section>
@@ -289,8 +352,9 @@ $('backupImport').addEventListener('click',async()=>{try{
  }catch(err){$('backupStatus').textContent='復元停止：'+err.message;log('WARN',`安全のため復元停止：${err.message}`);}});
 
 let greetingDrafts=newTemplates(),greetingDirty=false;
-function loadGreetingEditor(){greetingDrafts={...db.templates};greetingDirty=false;showGreetingKind();$('greetingClosing').value=greetingDrafts.closing;}
-function showGreetingKind(){$('greetingIntro').value=greetingDrafts[$('editGreetingKind').value];}
+function loadGreetingEditor(){greetingDrafts={...db.templates};greetingDirty=false;showGreetingKind();$('greetingClosing').value=greetingDrafts.closing;if(Object.values(greetingDrafts).some(x=>!x.trim()))$('greetingStatus').textContent='保存済みテンプレートに空欄があります。必要なら「初期文を入力（未保存）」で補ってください。';}
+function showGreetingKind(){const kind=$('editGreetingKind').value;$('greetingIntro').value=greetingDrafts[kind];$('greetingIntroLabel').textContent=({normal:'通常のお客様向け',repeat:'リピーター向け',regular:'常連のお客様向け'})[kind]+'・冒頭文';}
+$('restoreGreetingDraft').addEventListener('click',()=>{if(!confirm('3種類の冒頭文と共通の締め文を初期文に戻しますか？\nまだ保存されません。既存取引の文章は変わりません。'))return;greetingDrafts=newTemplates();greetingDirty=true;showGreetingKind();$('greetingClosing').value=greetingDrafts.closing;$('greetingSample').hidden=true;$('greetingStatus').textContent='初期文を入力しました（未保存）。内容を確認してから保存してください。';});
 $('editGreetingKind').addEventListener('change',()=>{showGreetingKind();$('greetingStatus').textContent=greetingDirty?'未保存の変更があります。保存ボタンで確定してください。':'変更は保存ボタンで確定します。';});
 $('greetingIntro').addEventListener('input',()=>{greetingDrafts[$('editGreetingKind').value]=$('greetingIntro').value;greetingDirty=true;});
 $('greetingClosing').addEventListener('input',()=>{greetingDrafts.closing=$('greetingClosing').value;greetingDirty=true;});
@@ -304,6 +368,8 @@ run('確保時の挨拶文固定',()=>{const t=newTemplates(),taken=templateSnap
 run('挨拶別文面',()=>{const t=templateSnapshot(newTemplates(),'repeat'),d={product:'本麒麟',store:'seven',greetingSnapshot:t,parts:[{ids:['https://example.com/demo'],messageSnapshot:null}]};return compose(d,d.parts[0],0).startsWith(t.greeting);});
 run('共通締め文の反映',()=>{const t=templateSnapshot(newTemplates(),'normal'),d={product:'本麒麟',store:'seven',greetingSnapshot:t,parts:[{ids:['https://example.com/demo'],messageSnapshot:null}]};return compose(d,d.parts[0],0).endsWith(t.closing);});
 run('不正な挨拶テンプレートを拒否',()=>!validTemplates({...newTemplates(),regular:99}));
+run('初期文セットが既存データと独立',()=>{const draft=newTemplates();draft.normal='変更テスト';return newTemplates().normal!=='変更テスト'&&JSON.stringify(db)===snap});
+run('締め文は初期表示で折りたたみ',()=>!$('lab07ClosingDetails').open);
 run('テスト後のデータ不変',()=>JSON.stringify(db)===snap);$('testResult').textContent=`自動テスト：${passed}/${total} 合格` ;log(passed===total?'INFO':'ERROR',`自動テスト終了：${passed}/${total} 合格`);});
 $('copyLog').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(logEntries.join('\n'));log('INFO','ログをコピーしました');}catch{log('WARN','コピーできません。ログ本文を選択してください');}});
 log('INFO','LAB 07統合候補起動。旧版と保存先は分離。実データではなくダミーURLで検証してください。');
