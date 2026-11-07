@@ -212,6 +212,27 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
   background-repeat:no-repeat;
   background-size:16px 16px;
 }
+
+/* LAB07: inventory greeting choice uses the same three semantic tones as the editor.
+   Only the greeting selector is themed; quantity stays neutral. */
+#inventory .product .fields select.greeting-kind:has(option[value="normal"]:checked){
+  background-color:#eaf4f1;
+  border-color:#a5cfc4;
+  color:#176c5c;
+  -webkit-text-fill-color:#176c5c;
+}
+#inventory .product .fields select.greeting-kind:has(option[value="repeat"]:checked){
+  background-color:#eef2fa;
+  border-color:#b9cae7;
+  color:#3f609c;
+  -webkit-text-fill-color:#3f609c;
+}
+#inventory .product .fields select.greeting-kind:has(option[value="regular"]:checked){
+  background-color:#f6eff9;
+  border-color:#d7bce4;
+  color:#805397;
+  -webkit-text-fill-color:#805397;
+}
 </style></head><body>
 <h1>クーポン管理 <span class="badge">店舗別送付統合 LAB 07</span></h1><p class="sub">iPhone Safari専用想定・独立実験版・旧版・LAB 05と別の保存領域</p>
 <div class="warning">⚠️ 独立した実験版です。まずダミーURLで検証してください。送付管理の統合を検証する独立実験版です。旧版からの移行は未対応。実際の当選URLは登録しないでください。</div>
