@@ -342,6 +342,29 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 .backup-rules{border:1px solid #dae5ea;border-radius:10px;background:#f8fafb;margin:9px 0 13px;padding:9px 12px}
 .backup-rules>summary{font-size:14px;font-weight:700;cursor:pointer;color:#435d6c}
 .backup-rules>.hint{margin:10px 0 3px;font-size:13px;line-height:1.6}
+
+/* LAB09 backup UI: condensed expandable hub, distinct areas */
+.backup-hub>summary{font-size:17px;line-height:1.5;cursor:pointer;font-weight:800;list-style-position:inside}
+.backup-summary-note{font-size:12px;color:#6a7a84;font-weight:500;margin-left:4px}
+.backup-hub-brief{display:block;font-size:12px;line-height:1.5;font-weight:500;color:#60717d;margin-top:5px}
+.backup-status-overview{display:grid;gap:7px;margin:12px 0}
+.backup-status-row{display:flex;flex-direction:column;gap:2px;border-radius:9px;padding:9px 12px;font-size:13px;border:1px solid #ccd8e5;background:#f0f6fc;color:#345b81}
+.backup-status-row strong{font-size:14px}.backup-status-row span{font-size:13px;overflow-wrap:anywhere}
+.backup-status-transaction{background:#edf7f3;color:#176b59;border-color:#c2dfd3}
+.backup-reminder{padding:9px 11px;border:1px solid #edd7a3;background:#fffaee;color:#79591a;border-radius:9px;font-size:13px;line-height:1.6}
+.backup-reminder[data-urgent=true]{border-color:#e7c58c;background:#fff6e9}
+.backup-card-list{display:grid;gap:10px}
+.backup-subpanel{border:1px solid #bcd2e4;background:#f0f6fc;border-radius:12px;padding:12px}
+.backup-subpanel>summary{font-weight:800;font-size:16px;cursor:pointer;color:#315b80}
+.backup-subpanel.backup-transaction{border-color:#b6dbce;background:#eff8f4}
+.backup-subpanel.backup-transaction>summary{color:#166653}
+.backup-mini{display:block;font-size:12px;font-weight:500;color:#5b7584;margin:3px 0}
+.backup-subpanel label{margin:9px 0}.backup-subpanel .row{margin:9px 0}
+.backup-status{font-size:16px;font-weight:650;line-height:1.6;overflow-wrap:anywhere;margin:10px 0}
+.backup-confirm{width:100%;margin-top:7px;border-color:#a8c5c3}
+.backup-disclaimer{margin-top:12px;line-height:1.6}
+.candidate-item{padding:5px 0;border-bottom:1px solid #cfdee5;font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.candidate-more{margin-top:8px}.candidate-more>summary{font-size:13px;font-weight:750;cursor:pointer;color:#256879;padding:7px 0}
 </style></head><body>
 <h1>クーポン管理 <span class="badge">購入者連携 LAB 09・実験版</span></h1><p class="sub">iPhone Safari向け・取引と購入者台帳の手動関連付け・RC1/LAB 08とは独立</p>
 <div class="warning">⚠️ LAB 09は取引と購入者台帳をつなぐ実験版です。RC1・LAB 08とは別の保存領域です。実際の購入者ID・当選URLは登録せず、ダミーデータで検証してください。</div>
@@ -405,15 +428,31 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 <div class="buyer-form-actions"><button type="button" id="buyerSave" class="primary">確認して登録</button><button type="button" id="buyerClear">入力をクリア</button></div>
 <p class="hint buyer-edit-caption" id="buyerEditHelp">検索結果の「この記録を編集」から対象を明示的に選択します。先頭3文字だけで上書きしません。</p>
 </details>
-<details class="closing-details backup-group buyer-backup-group"><summary>⑤ 購入者台帳｜バックアップ・復元</summary>
+<p id="buyerStatus" class="hint" role="status" aria-live="polite">検索・登録はダミー情報で確認してください。半角・全角カタカナと英字大小は検索時に吸収します。</p>
+</section>
+<details class="card backup-hub" id="backupHub">
+<summary>🗃 バックアップ・復元 <span class="backup-summary-note">必要なときだけ開く</span><span id="backupHubBrief" class="backup-hub-brief">保存確認：未実施</span></summary>
+<p class="hint">台帳と在庫・取引を別々に保存します。復元先を間違えた場合は拒否します。</p>
+<div class="backup-status-overview">
+  <div class="backup-status-row backup-status-buyer"><strong>購入者台帳</strong><span id="buyerLastBackup">保存確認：未実施</span></div>
+  <div class="backup-status-row backup-status-transaction"><strong>在庫・取引</strong><span id="transactionLastBackup">保存確認：未実施</span></div>
+</div>
+<div id="backupReminder" class="backup-reminder" role="status" aria-live="polite" hidden></div>
+<div class="backup-card-list">
+<details class="backup-subpanel backup-buyer"><summary>購入者台帳 <span class="backup-mini">ID・表示名・メモ</span></summary>
 <p class="backup-short-intro">購入者のID・表示名・メモを保存する専用JSON。URL・取引は⑥です。</p><details class="backup-rules"><summary>復元の安全条件を確認</summary><p class="hint">保存先を選ぶ共有メニューを優先します。異なる内容の復元は台帳が空の時だけ、確認付きで許可します。</p></details>
 <label>バックアップ名<input id="buyerBackupName" maxlength="70" placeholder="例：台帳バックアップ_20261108" autocomplete="off"></label>
 <div class="row"><button type="button" id="buyerExport">台帳JSONを保存</button><label class="restore-input">台帳JSONを選択<input id="buyerImportFile" type="file" accept="application/json,.json"></label></div>
-<button type="button" id="buyerImport">台帳を検査して復元</button>
+<button type="button" id="buyerImport">台帳を検査して復元</button><p id="buyerBackupStatus" class="backup-status" role="status" aria-live="polite"></p>
+<button type="button" id="buyerConfirmSaved" class="backup-confirm" disabled>台帳ファイルの保存を確認した</button>
+<p class="hint">保存先にファイルが存在することを確かめたあとで押してください。</p>
 </details>
-<p id="buyerStatus" class="hint" role="status" aria-live="polite">検索・登録はダミー情報で確認してください。半角・全角カタカナと英字大小は検索時に吸収します。</p>
-</section>
-<section class="card url-backup-group"><h2>⑥ 在庫・取引｜バックアップ・復元</h2><p class="backup-short-intro">登録URL・確保・送付履歴を保存する専用JSON。購入者台帳は⑤です。</p><details class="backup-rules"><summary>復元の安全条件を確認</summary><p class="hint">完全一致ならデータを変更せず終了します。異なるデータの復元は未使用の初期状態だけに限定し、件数確認後に実行します。既存の送付履歴を巻き戻す操作は拒否します。</p></details><label for="backupName">バックアップのファイル名（任意・保存前に入力）<input id="backupName" type="text" maxlength="80" placeholder="例：送付前_20261107" autocomplete="off"></label><p class="hint">iPhoneでは「ファイルに保存」から保存先を選べます。</p><div class="row"><button type="button" id="backupExport">バックアップを保存</button><label class="restore-input">JSONファイルを選択<input id="backupFile" type="file" accept="application/json,.json"></label></div><button type="button" id="backupImport">バックアップを検査して復元</button><p id="backupStatus" class="hint" role="status" aria-live="polite"></p></section>
+<details class="backup-subpanel backup-transaction"><summary>在庫・取引 <span class="backup-mini">URL・確保・送付履歴</span></summary><p class="backup-short-intro">登録URL・確保・送付履歴を保存する専用JSON。購入者台帳は⑤です。</p><details class="backup-rules"><summary>復元の安全条件を確認</summary><p class="hint">完全一致ならデータを変更せず終了します。異なるデータの復元は未使用の初期状態だけに限定し、件数確認後に実行します。既存の送付履歴を巻き戻す操作は拒否します。</p></details><label for="backupName">バックアップのファイル名（任意・保存前に入力）<input id="backupName" type="text" maxlength="80" placeholder="例：送付前_20261107" autocomplete="off"></label><p class="hint">iPhoneでは「ファイルに保存」から保存先を選べます。</p><div class="row"><button type="button" id="backupExport">バックアップを保存</button><label class="restore-input">JSONファイルを選択<input id="backupFile" type="file" accept="application/json,.json"></label></div><button type="button" id="backupImport">バックアップを検査して復元</button><p id="backupStatus" class="backup-status" role="status" aria-live="polite"></p><button type="button" id="transactionConfirmSaved" class="backup-confirm" disabled>在庫・取引ファイルの保存を確認した</button>
+<p class="hint">保存先にファイルが存在することを確かめたあとで押してください。</p>
+</details>
+</div>
+<p class="hint backup-disclaimer">保存日時・確認状況はこの端末にだけ記録します。共有メニューの操作だけでは保存完了とみなしません。</p>
+</details>
 <p class="footer">LAB 09は独立した保存領域を使います。RC1・LAB 07・LAB 08のデータを読み書きしません。取引と台帳のバックアップは別々です。</p>
 <script>
 (()=>{'use strict';
@@ -441,7 +480,7 @@ function masked(value){try{let u=new URL(value);return u.hostname+' / URL末尾 
 function invalidate(){preview=null;$('checkResults').replaceChildren();$('checkSummary').textContent='入力が変更されました。再度照合してください。';$('commitUrls').hidden=true;}
 
 try{const saved=localStorage.getItem(KEY);if(saved!==null){const raw=JSON.parse(saved);strictCheck(raw);db={...initial(),...raw,lastOps:raw.lastOps&&typeof raw.lastOps==='object'&&!Array.isArray(raw.lastOps)?raw.lastOps:{}};}}catch(e){blocked=true;$('notice').textContent='保存データの検証に失敗しました。登録・確保・送付操作を停止しています。';log('ERROR','保存データ検証失敗：書き換えを停止');}
-function persist(next){if(blocked)throw new Error('保存データの読み込み異常により操作停止中');localStorage.setItem(KEY,JSON.stringify(next));db=next;render()}
+function persist(next){if(blocked)throw new Error('保存データの読み込み異常により操作停止中');localStorage.setItem(KEY,JSON.stringify(next));db=next;render();refreshBackupUI()}
 function note(s){$('notice').textContent=s}
 function stat(items){return {total:items.length,available:items.filter(x=>x.status==='available').length,reserved:items.filter(x=>x.status==='reserved').length,sent:items.filter(x=>x.status==='sent').length}}
 function buyerOptions(){
@@ -472,8 +511,11 @@ $('inventory').addEventListener('input',e=>{
      const found=buyers.records.filter(rec=>[rec.fullId,rec.prefix,rec.displayName,rec.alias].some(v=>normalizeBuyerSearch(v).includes(q)));
      if(!found.length)summary.textContent='該当する購入者は0件です。選択する前に検索語を確認してください。';
      else {
-       const top=found.slice(0,3).map(rec=>`${rec.displayName||rec.fullId||rec.prefix||'表示名なし'}（${rec.fullId||rec.prefix||'IDなし'}）`).join(' ／ ');
-       summary.textContent=`候補${found.length}件：${top}${found.length>3?' ほか':''}。下のプルダウンで明示的に選択してください。`;
+       summary.replaceChildren();
+       const count=document.createElement('div');count.textContent=`候補${found.length}件（表示は最大3件）。関連付けは下のプルダウンから手動選択。`;summary.append(count);
+       const show=(parent,records)=>{for(const rec of records){const item=document.createElement('div');item.className='candidate-item';item.textContent=`${rec.displayName||rec.fullId||rec.prefix||'表示名なし'} ／ ${rec.fullId||rec.prefix||'IDなし'}`;parent.append(item);}};
+       show(summary,found.slice(0,3));
+       if(found.length>3){const more=document.createElement('details');more.className='candidate-more';const heading=document.createElement('summary');heading.textContent=`残り${found.length-3}件の候補を表示`;more.append(heading);show(more,found.slice(3));summary.append(more);}
      }
    }
  }
@@ -537,9 +579,49 @@ function strictCheck(data){
  for(const x of data.items){if(x.status!=='available'&&!dealIds.has(x.dealId))throw Error('確保・送付履歴が欠落しています');if(x.status==='available'&&x.dealId!=null)throw Error('利用可能URLに不正な確保情報があります');}
  for(const d of data.deals){for(const p of d.parts)for(const id of p.ids){const x=data.items.find(y=>y.id===id);if(!x||x.dealId!==d.id||x.store!==d.store||x.product!==d.product||x.status!==(p.sentAt?'sent':'reserved'))throw Error('送付済み・確保中のURL状態が一致しません');}}
 }
+// LAB09: local-only backup evidence. Separate from inventories/ledgers and their JSON schemas.
+const BACKUP_META_KEY='coupon_sales_buyer_link_lab09_backup_evidence_v1';
+function defaultBackupMeta(){return {buyer:{createdAt:null,confirmedAt:null,pending:false},transaction:{createdAt:null,confirmedAt:null,pending:false},firstActive:{buyer:null,transaction:null}};}
+let backupMeta=defaultBackupMeta();
+try{const v=JSON.parse(localStorage.getItem(BACKUP_META_KEY)||'null');if(v&&typeof v==='object'){
+ for(const type of ['buyer','transaction']){if(v[type]&&typeof v[type]==='object')for(const k of ['createdAt','confirmedAt','pending'])if(typeof v[type][k]===(k==='pending'?'boolean':'string')||v[type][k]===null)backupMeta[type][k]=v[type][k];}
+ if(v.firstActive&&typeof v.firstActive==='object')for(const type of ['buyer','transaction'])if(typeof v.firstActive[type]==='string')backupMeta.firstActive[type]=v.firstActive[type];
+}}catch(e){log('WARN','バックアップ日時メタデータを読めません。保存状態は未確認として扱います。');}
+function saveBackupMeta(){try{localStorage.setItem(BACKUP_META_KEY,JSON.stringify(backupMeta));}catch(e){log('WARN','バックアップ日時を記録できません。端末の空き容量等を確認してください。');}}
+function formatBackupTime(value){if(!value)return '未実施';const d=new Date(value);return Number.isFinite(d.getTime())?d.toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'未確認';}
+function hasBackupContent(type){return type==='buyer'?(!buyerBlocked&&buyers.records.length>0):(!blocked&&(db.items.length>0||db.deals.length>0));}
+function computeReminderLevel(hasContent,confirmedAt,firstActiveAt,now=Date.now()){
+ if(!hasContent)return 0;
+ const date=confirmedAt||firstActiveAt;if(!date)return 0;
+ const elapsed=now-new Date(date).getTime();if(!Number.isFinite(elapsed))return 0;
+ return elapsed>=14*86400000?2:elapsed>=7*86400000?1:0;
+}
+function reminderLevel(type,now=Date.now()){
+ return computeReminderLevel(hasBackupContent(type),backupMeta[type].confirmedAt,backupMeta.firstActive[type],now);
+}
+function refreshBackupUI(){
+ let dirty=false;
+ for(const type of ['buyer','transaction'])if(hasBackupContent(type)&&!backupMeta.firstActive[type]){backupMeta.firstActive[type]=new Date().toISOString();dirty=true;}
+ if(dirty)saveBackupMeta();
+ for(const [type,id] of [['buyer','buyerLastBackup'],['transaction','transactionLastBackup']]){
+ const v=backupMeta[type];const extra=v.pending?' ／ 新規作成・保存未確認':'';
+ $(id).textContent=`保存確認：${formatBackupTime(v.confirmedAt)}${extra}`;
+ $(type==='buyer'?'buyerConfirmSaved':'transactionConfirmSaved').disabled=!v.pending;
+ }
+ const status=[];
+ for(const type of ['transaction','buyer']){const level=reminderLevel(type);if(level)status.push(`${type==='buyer'?'購入者台帳':'在庫・取引'}：最終保存確認から${level===2?'14日以上':'7日以上'}経過${backupMeta[type].confirmedAt?'':'（まだ保存確認なし）'}`);}
+ const brief=$('backupHubBrief');brief.textContent=`台帳：${formatBackupTime(backupMeta.buyer.confirmedAt)} ／ 在庫・取引：${formatBackupTime(backupMeta.transaction.confirmedAt)}`+(status.length?' ／ 🔔 確認時期':'');
+ const el=$('backupReminder');el.hidden=!status.length;el.textContent=status.length?'🔔 バックアップ確認のお願い：'+status.join(' ／ '):'';
+ el.dataset.urgent=status.some(v=>v.includes('在庫・取引'))?'true':'false';
+}
+function markBackupCreated(type){backupMeta[type].createdAt=new Date().toISOString();backupMeta[type].pending=true;saveBackupMeta();refreshBackupUI();}
+function confirmBackupSaved(type){if(!backupMeta[type].pending)return; if(!confirm(`${type==='buyer'?'購入者台帳':'在庫・取引'}のJSONファイルが、保存先にあることを確認しましたか？`))return;
+ backupMeta[type].confirmedAt=new Date().toISOString();backupMeta[type].pending=false;saveBackupMeta();refreshBackupUI();}
+$('buyerConfirmSaved').addEventListener('click',()=>confirmBackupSaved('buyer'));
+$('transactionConfirmSaved').addEventListener('click',()=>confirmBackupSaved('transaction'));
 function backupFilename(){const raw=$('backupName').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/\s+/g,'_').replace(/^\.+|\.+$/g,'').slice(0,70);return 'coupon_lab08_backup_'+(raw||new Date().toISOString().slice(0,10))+'.json';}
 function downloadBackup(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);}
-$('backupExport').addEventListener('click',async()=>{try{strictCheck(db);const payload={schema:BACKUP_SCHEMA,exportedAt:new Date().toISOString(),data:db};const name=backupFilename();const json=JSON.stringify(payload,null,2);const file=new File([json],name,{type:'application/json'});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});$('backupStatus').textContent='共有メニューを開きました。「ファイルに保存」で保存先と保存完了を確認してください。';log('INFO',`バックアップ共有処理 ${db.items.length}件（保存先は未確認）`);}catch(err){if(err.name==='AbortError'){$('backupStatus').textContent='保存先選択をキャンセルしました。バックアップ保存は未確認です。';log('INFO','保存先選択がキャンセルされました');}else{$('backupStatus').textContent='共有メニューの処理に失敗しました。保存は未確認です：'+err.message;log('WARN','共有メニューによる保存に失敗');}}return;}downloadBackup(file,name);$('backupStatus').textContent='通常ダウンロードを開始しました。Safariのダウンロード先でファイルを確認してください。';log('INFO',`通常ダウンロード開始 ${db.items.length}件（保存先は未確認）`);}catch(err){$('backupStatus').textContent='バックアップ失敗：'+err.message;log('ERROR','バックアップ書出し停止');}});
+$('backupExport').addEventListener('click',async()=>{try{strictCheck(db);const payload={schema:BACKUP_SCHEMA,exportedAt:new Date().toISOString(),data:db};const name=backupFilename();const json=JSON.stringify(payload,null,2);const file=new File([json],name,{type:'application/json'});markBackupCreated('transaction');if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});$('backupStatus').textContent='共有メニューを開きました。「ファイルに保存」で保存先と保存完了を確認してください。';log('INFO',`バックアップ共有処理 ${db.items.length}件（保存先は未確認）`);}catch(err){if(err.name==='AbortError'){$('backupStatus').textContent='保存先選択をキャンセルしました。バックアップ保存は未確認です。';log('INFO','保存先選択がキャンセルされました');}else{$('backupStatus').textContent='共有メニューの処理に失敗しました。保存は未確認です：'+err.message;log('WARN','共有メニューによる保存に失敗');}}return;}downloadBackup(file,name);$('backupStatus').textContent='通常ダウンロードを開始しました。Safariのダウンロード先でファイルを確認してください。';log('INFO',`通常ダウンロード開始 ${db.items.length}件（保存先は未確認）`);}catch(err){$('backupStatus').textContent='バックアップ失敗：'+err.message;log('ERROR','バックアップ書出し停止');}});
 // 完全一致を最優先。件数だけで「空」と判断しない。
 function identicalBackupData(current,incoming){return JSON.stringify(current)===JSON.stringify(incoming);}
 function pristineRestoreTarget(current){return identicalBackupData(current,initial());}
@@ -624,7 +706,7 @@ function validateBuyerLedger(a){
 function buyerMatches(a,query){const q=normalizeBuyerSearch(query);return a.records.filter(r=>[r.prefix,r.fullId,r.displayName,r.alias].some(v=>normalizeBuyerSearch(v).includes(q)));}
 let buyers={schema:BUYER_SCHEMA,records:[]},buyerBlocked=false,buyerEditingId=null;
 try{const raw=localStorage.getItem(BUYER_KEY);if(raw!==null){const loaded=JSON.parse(raw);validateBuyerLedger(loaded);buyers=loaded;}}catch{buyerBlocked=true;$('buyerStatus').textContent='台帳データの検証に失敗したため登録・更新・復元を停止しました。既存データは変更していません。';log('ERROR','購入者台帳の読み込みを安全停止');}
-function saveBuyers(next){if(buyerBlocked)throw Error('台帳データに異常があります。上書きを停止しました');validateBuyerLedger(next);localStorage.setItem(BUYER_KEY,JSON.stringify(next));buyers=next;renderBuyers();render();}
+function saveBuyers(next){if(buyerBlocked)throw Error('台帳データに異常があります。上書きを停止しました');validateBuyerLedger(next);localStorage.setItem(BUYER_KEY,JSON.stringify(next));buyers=next;renderBuyers();render();refreshBackupUI();}
 function renderBuyers(){
  $('buyerCount').textContent=`購入者台帳：${buyers.records.length}件`;
  const q=$('buyerSearch').value.trim();
@@ -653,23 +735,24 @@ $('buyerSave').addEventListener('click',()=>{try{
  }catch(err){$('buyerStatus').textContent='保存停止：'+err.message;}});
 function buyerExportName(){const n=$('buyerBackupName').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').slice(0,60);return 'coupon_buyer_lab08_'+(n||new Date().toISOString().slice(0,10))+'.json';}
 $('buyerExport').addEventListener('click',async()=>{try{
- validateBuyerLedger(buyers);const file=new File([JSON.stringify(buyers,null,2)],buyerExportName(),{type:'application/json'});
+ validateBuyerLedger(buyers);const file=new File([JSON.stringify(buyers,null,2)],buyerExportName(),{type:'application/json'});markBackupCreated('buyer');
  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-  try{await navigator.share({files:[file]});$('buyerStatus').textContent='共有メニューを開きました。「ファイルに保存」で保存完了を確認してください。';}catch(e){$('buyerStatus').textContent=e.name==='AbortError'?'保存先選択を中止しました':'共有に失敗しました：'+e.message;}
- }else{downloadBackup(file,file.name);$('buyerStatus').textContent='通常ダウンロードを開始しました。保存先を確認してください。';}
- }catch(e){$('buyerStatus').textContent='バックアップ停止：'+e.message;}});
+  try{await navigator.share({files:[file]});$('buyerBackupStatus').textContent='共有メニューを開きました。「ファイルに保存」で保存完了を確認してください。';}catch(e){$('buyerBackupStatus').textContent=e.name==='AbortError'?'保存先選択を中止しました':'共有に失敗しました：'+e.message;}
+ }else{downloadBackup(file,file.name);$('buyerBackupStatus').textContent='通常ダウンロードを開始しました。保存先を確認してください。';}
+ }catch(e){$('buyerBackupStatus').textContent='バックアップ停止：'+e.message;}});
 $('buyerImport').addEventListener('click',async()=>{try{
  if(buyerBlocked)throw Error('保存データの異常を検出しています');
  const file=$('buyerImportFile').files?.[0];if(!file)throw Error('台帳JSONを選択してください');if(file.size>1024*1024)throw Error('ファイルが大きすぎます');
  const incoming=JSON.parse(await file.text());if(incoming?.schema!==BUYER_SCHEMA)throw Error(backupTypeError(incoming,'buyer'));validateBuyerLedger(incoming);
- if(JSON.stringify(incoming)===JSON.stringify(buyers)){$('buyerStatus').textContent='台帳は完全一致：復元は行っていません（変更なし）。';return;}
+ if(JSON.stringify(incoming)===JSON.stringify(buyers)){$('buyerBackupStatus').textContent='台帳は完全一致：復元は行っていません（変更なし）。';return;}
  if(buyers.records.length)throw Error('登録済み台帳があるため上書き復元を拒否しました');
- if(!confirm(`購入者台帳 ${incoming.records.length}件を空の台帳へ復元しますか？\nRC1の在庫や取引は変更されません。`)){$('buyerStatus').textContent='復元をキャンセルしました。';return;}
+ if(!confirm(`購入者台帳 ${incoming.records.length}件を空の台帳へ復元しますか？\nRC1の在庫や取引は変更されません。`)){$('buyerBackupStatus').textContent='復元をキャンセルしました。';return;}
  if(buyers.records.length)throw Error('復元中に台帳が変更されました');
- saveBuyers(incoming);$('buyerStatus').textContent=`✓ 台帳 ${incoming.records.length}件を復元しました。`;
- }catch(e){$('buyerStatus').textContent='復元停止：'+e.message;}});
+ saveBuyers(incoming);$('buyerBackupStatus').textContent=`✓ 台帳 ${incoming.records.length}件を復元しました。`;
+ }catch(e){$('buyerBackupStatus').textContent='復元停止：'+e.message;}});
 renderBuyers();
 
+refreshBackupUI();
 function test(name,fn){try{if(!fn())throw new Error('期待値不一致');log('PASS',name);return true;}catch{log('FAIL',name);return false;}}
 $('runTests').addEventListener('click',()=>{let passed=0,total=0;const run=(n,f)=>{total++;if(test(n,f))passed++;};const d=['https://coupon.sej.co.jp/test/a','https://ncpfa.famima.com/test/b','https://coupon.sej.co.jp/test/a','https://example.com/u'];const snap=JSON.stringify(db),buyerSnap=JSON.stringify(buyers);run('セブン判定',()=>identify(d[0]).store==='seven');run('ファミマ判定',()=>identify(d[1]).store==='famima');run('ローソン既知形式判定',()=>identify('https://www.asahibeer-cp.jp/a/coupon/lw/index.html?code=TEST').store==='lawson');run('Google Driveは要確認',()=>identify('https://drive.google.com/file/d/TEST/view').store==='');run('未知URLは要確認',()=>identify(d[3]).store==='');run('HTTPS以外は拒否',()=>identify('http://coupon.sej.co.jp/a').reason==='HTTPS以外は不可');run('入力内重複は1行目を参照',()=>analyze(d.join('\n'),[])[2].duplicate===1);run('既存URL重複',()=>analyze(d[0],[{id:d[0]}])[0].registered===true);run('登録済み番号・商品・店舗を案内',()=>{const x=analyze(d[0],[{id:'https://example.com/other',product:'別商品',store:'seven'},{id:d[0],product:'本麒麟350ml',store:'seven'}])[0];const text=duplicateDescription(x);return x.registered&&x.registeredInfo.number===2&&text.includes('登録済み #2')&&text.includes('本麒麟350ml')&&text.includes('セブンイレブン');});run('入力内重複は登録済み番号と区別',()=>{const lines=analyze(d[0]+'\n'+d[0],[]);return lines[1].duplicate===1&&!lines[1].registered&&duplicateDescription(lines[1]).includes('今回入力 1行目');});run('URL形式エラー検出',()=>analyze('invalid',[])[0].invalid===true);run('未登録店舗が一覧に現れない',()=>![...new Set([{store:'seven'}].map(x=>x.store))].includes('lawson'));run('複数店舗の在庫集計',()=>stat([{status:'available'},{status:'reserved'},{status:'sent'}]).total===3);run('6件ずつ分割 13→6・6・1',()=>splitParts(Array.from({length:13},(_,i)=>'test'+i)).map(x=>x.ids.length).join(',')==='6,6,1');run('コピー前に送付済みにできない',()=>!splitParts(['a'])[0].copyIntentAt);run('コピー済みは取消禁止',()=>splitParts(['a']).map(p=>({...p,copyIntentAt:'TEST'})).some(p=>!!p.copyIntentAt));run('ダミー文面1024文字制限',()=>{let d={product:'test',store:'seven',parts:[{ids:['https://example.com/a'],messageSnapshot:null}]};return compose(d,d.parts[0],0).length<=1024});run('長文URLは送付を拒否',()=>{try{let d={product:'test',store:'seven',parts:[{ids:['https://example.com/'+ 'a'.repeat(1100)],messageSnapshot:null}]};compose(d,d.parts[0],0);return false}catch{return true}});run('空DBバックアップ構造',()=>{strictCheck(initial());return true});run('送付済み履歴欠落を拒否',()=>{try{strictCheck({version:3,templates:newTemplates(),seq:1,items:[{id:'test',product:'a',store:'seven',status:'sent',dealId:'missing'}],deals:[],lastOps:{}});return false}catch{return true}});run('単一送付文に通数なし',()=>{const d={product:'test',store:'seven',parts:[{ids:['https://example.com/one'],messageSnapshot:null}]};const m=compose(d,d.parts[0],0);return !m.includes('1/1通目')&&!m.includes('（1件）')&&m.includes('https://example.com/one');});run('複数送付文は通数あり',()=>{const d={product:'test',store:'seven',parts:splitParts(Array.from({length:7},(_,i)=>`https://example.com/${i}`))};return compose(d,d.parts[0],0).includes('1/2通目（6件）')&&compose(d,d.parts[1],1).includes('2/2通目（1件）');});run('コピー済み文面を保持',()=>{const d={product:'test',store:'seven',parts:[{ids:['https://example.com/one'],messageSnapshot:'過去に確定した送付文'}]};return compose(d,d.parts[0],0)==='過去に確定した送付文';});run('ファイル名の禁止文字を除去',()=>{const old=$('backupName').value;$('backupName').value='test:/\\*?';const n=backupFilename();$('backupName').value=old;return n.startsWith('coupon_lab08_backup_test')&&!/[\\/:*?]/.test(n);});run('空データ完全一致は復元しない',()=>restoreDecision(initial(),structuredClone(initial()))==='unchanged');run('空初期状態へ異なるデータは確認必須',()=>{const next=initial();next.items=[{id:'https://coupon.sej.co.jp/test/restore',product:'テスト',store:'seven',status:'available',dealId:null}];strictCheck(next);return restoreDecision(initial(),next)==='confirm';});run('復元対象が既存データありなら拒否',()=>{const current=initial();current.items=[{id:'https://coupon.sej.co.jp/test/existing',product:'テスト',store:'seven',status:'available',dealId:null}];return restoreDecision(current,initial())==='reject';});run('履歴番号が残る空状態への復元は拒否',()=>{const current=initial();current.seq=1;return restoreDecision(current,{...initial(),seq:2})==='reject';});run('操作履歴が残る空状態への復元は拒否',()=>{const current=initial();current.lastOps={'テスト|seven':'以前の操作'};return restoreDecision(current,initial())==='reject';});run('同一の非空データは変更しない',()=>{const current=initial();current.items.push({id:'https://coupon.sej.co.jp/test/same',product:'テスト',store:'seven',status:'available',dealId:null});return restoreDecision(current,structuredClone(current))==='unchanged';});run('挨拶3種類の初期値',()=>['normal','repeat','regular'].every(k=>newTemplates()[k].length>0));
 run('挨拶のスナップショット作成',()=>templateSnapshot(newTemplates(),'repeat').kind==='repeat');
@@ -700,6 +783,10 @@ run('連携：存在しない購入者IDは拒否',()=>{try{buyerSnapshotFor('bu
 run('連携：候補だけでは選択されない',()=>!!document.querySelector('.buyer-choice option[value=""]')||db.items.length===0);
 run('連携：挨拶区分は台帳から自動決定しない',()=>{const a=makeBuyerRecord('abc','確認','regular','unknown','');const kind='normal';return buyerSnapshotFor(a.id,{records:[a]}).kind!==kind&&kind==='normal'});
 run('連携：取引関連付けは保存取引から集計',()=>{const a=makeBuyerRecord('abc','A','normal','unknown',''),b=makeBuyerRecord('xyz','B','normal','unknown','');const ds=[{buyerSnapshot:{id:a.id}},{buyerSnapshot:{id:a.id}},{buyerSnapshot:null}];return ds.filter(d=>d.buyerSnapshot?.id===a.id).length===2&&ds.filter(d=>d.buyerSnapshot?.id===b.id).length===0});
+run('候補上限3件と展開対象',()=>{const a=Array.from({length:5},(_,i)=>({displayName:'サンプル'+i,fullId:'abc_'+i,prefix:'abc',alias:''}));return a.slice(0,3).length===3&&a.slice(3).length===2;});
+run('バックアップ：未確認は完了扱いしない',()=>{const m={createdAt:'2026-11-01T00:00:00Z',confirmedAt:null,pending:true};return !!m.createdAt&&!m.confirmedAt&&m.pending;});
+run('バックアップ：7日・14日案内',()=>{const now=Date.now(),dt=days=>new Date(now-days*86400000).toISOString();return computeReminderLevel(true,null,dt(6),now)===0&&computeReminderLevel(true,null,dt(8),now)===1&&computeReminderLevel(true,dt(15),dt(20),now)===2;});
+run('バックアップ：空データ時は催促不要',()=>computeReminderLevel(false,null,'2026-10-01T00:00:00Z',Date.now())===0);
 run('台帳：自動テスト後のデータ不変',()=>JSON.stringify(buyers)===buyerSnap);
 run('テスト後のデータ不変',()=>JSON.stringify(db)===snap);$('testResult').textContent=`自動テスト：${passed}/${total} 合格` ;log(passed===total?'INFO':'ERROR',`自動テスト終了：${passed}/${total} 合格`);});
 $('copyLog').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(logEntries.join('\n'));log('INFO','ログをコピーしました');}catch{log('WARN','コピーできません。ログ本文を選択してください');}});
