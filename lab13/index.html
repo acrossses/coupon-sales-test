@@ -1,0 +1,73 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>クーポン管理｜RC1移行検証 LAB 13（読み取り専用）</title><style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;color:#23333e;background:#f4f7fa;color-scheme:light}*{box-sizing:border-box}body{max-width:720px;margin:auto;padding:18px 14px calc(60px + env(safe-area-inset-bottom));line-height:1.6}h1{font-size:23px;margin:5px 0}h2{font-size:18px;margin:0 0 9px}.sub{font-size:13px;color:#637387}.card{margin:15px 0;border:1px solid #dbe6ec;border-radius:17px;padding:18px;background:#fff;box-shadow:0 3px 12px #152b3a0a}.warn{background:#fff5e6;border-color:#eed49e;color:#6f531b}.safe{background:#eaf7f2;border-color:#b8ded1;color:#155e51}label{display:block;font-weight:750;margin:12px 0 5px}input[type=file]{display:block;width:100%;font:inherit;padding:13px 7px;border:1px solid #cbd8df;border-radius:9px;max-width:100%}button{font:inherit;font-weight:800;min-height:48px;padding:10px 14px;border-radius:10px;border:1px solid #bfcfd6;background:#fff;color:#243541;margin:10px 0}button.primary{background:#126e5c;color:#fff;border-color:#126e5c}button:disabled{opacity:.4}.muted{color:#657686;font-size:13px}.status{font-size:16px;font-weight:800;overflow-wrap:anywhere}.fail{color:#a13532}.pass{color:#126b50}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric{border:1px solid #dde6eb;border-radius:11px;padding:11px;text-align:center;background:#f8fafb}.metric strong{display:block;font-size:26px;font-variant-numeric:tabular-nums}.metric span{display:block;font-size:12px;color:#5c7080}.checks{padding-left:22px;font-size:14px}.checks li{padding:4px 0}.foot{font-size:12px;color:#647487}.plain{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;background:#f5f8fa;padding:12px;border-radius:10px}.hide{display:none} @media(max-width:360px){.card{padding:13px}}
+</style></head><body>
+<h1>クーポン管理 <small style="font-size:13px;color:#176a5c">LAB 13</small></h1>
+<p class="sub">RC1 → 統合版　移行前・読み取り専用検証</p>
+<section class="card warn"><strong>まだ移行しません</strong><div>この画面はRC1のJSONバックアップの検査だけを行います。取り込み・復元・既存データの変更・バックアップの書き換えはできません。<br>検査に合格しても正式版へ自動移行することはありません。</div></section>
+<section class="card"><h2>① RC1バックアップの検査</h2><p class="muted">RC1の「バックアップを保存」から書き出したJSONファイルを選んでください。元ファイルはそのまま残します。</p><label for="file">RC1バックアップJSON</label><input id="file" type="file" accept=".json,application/json"><button class="primary" id="check" type="button">バックアップを読み取り専用で検査</button><p class="muted">検査はこの端末内で行います。URL全文、購入者情報、送付文面は画面・ログに表示しません。</p><div id="status" class="status" role="status" aria-live="polite">未検査</div></section>
+<section class="card hide" id="report"><h2>② 検査結果</h2><div class="grid" id="metrics"></div><h2 style="margin-top:20px">保持項目の照合</h2><ul class="checks" id="checks"></ul><div class="plain" id="detail"></div><p class="muted">比較対象は実運用LAB12ではなく、RC1バックアップを変更せず統合版のデータ形式へ渡す想定のメモリ上の値です。実際の保存・読み戻し確認は次段階です。</p></section>
+<section class="card"><h2>③ 検証機能の自己診断</h2><button id="self" type="button">ダミーデータで検査器を自己診断</button><p id="selfResult" class="muted" role="status"></p></section>
+<p class="foot">このLAB13は localStorage / IndexedDB / Cookie を読み書きしません。既存RC1・LAB09・LAB10・LAB11・LAB12の保存データを参照しません。ネットワーク送信機能もありません。</p>
+<script>
+(()=>{'use strict';
+ const $=id=>document.getElementById(id), SCHEMA='coupon-sales-release-candidate-rc1-v1';
+ const stores=new Set(['seven','famima','lawson']);const greetings=new Set(['normal','repeat','regular']);
+ const assert=(b,m)=>{if(!b)throw Error(m);};const isObj=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+ const string=(x,n=100000)=>typeof x==='string'&&x.length<=n;
+ function deepEq(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+ function validate(payload){
+  assert(isObj(payload)&&payload.schema===SCHEMA,'RC1のバックアップ識別子が一致しません（別形式または台帳JSON）。');
+  const d=payload.data;assert(isObj(d)&&d.version===3&&Array.isArray(d.items)&&Array.isArray(d.deals),'RC1データの基本構造が不正です。');
+  assert(Number.isSafeInteger(d.seq)&&d.seq>=0,'取引連番が不正です。');
+  assert(isObj(d.lastOps),'操作履歴が不正です。');
+  assert(Object.entries(d.lastOps).every(([k,v])=>string(k,400)&&string(v,10000)),'操作履歴に不正な値があります。');
+  assert(isObj(d.templates)&&['normal','repeat','regular','closing'].every(k=>string(d.templates[k],500)),'挨拶テンプレートが不正です。');
+  assert(Object.values(d.templates).every(v=>string(v,500)&&!/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v)),'挨拶テンプレートに不正な値があります。');
+  const itemMap=new Map();let available=0,reserved=0,sent=0;
+  for(const it of d.items){
+   assert(isObj(it)&&string(it.id)&&it.id.length>0&&string(it.product)&&stores.has(it.store)&&['available','reserved','sent'].includes(it.status),'URL・商品・店舗・在庫状態が不正です。');
+   assert(!itemMap.has(it.id),'同一URLが重複しています。');
+   assert(it.status==='available'?it.dealId==null:string(it.dealId)&&it.dealId.length>0,'URLの取引参照が不正です。');
+   itemMap.set(it.id,it);if(it.status==='available')available++;else if(it.status==='reserved')reserved++;else sent++;
+  }
+  const dealMap=new Map(),assigned=new Set();let copiedParts=0,sentParts=0,legacyParts=0;
+  for(const deal of d.deals){
+   assert(isObj(deal)&&string(deal.id)&&deal.id.length>0&&!dealMap.has(deal.id),'取引IDが不正または重複しています。');
+   assert(string(deal.label,80)&&string(deal.product)&&stores.has(deal.store),'取引情報が不正です。');
+   assert(Array.isArray(deal.itemIds)&&deal.itemIds.length>0&&Array.isArray(deal.parts)&&deal.parts.length>0,'取引URL・送付分割情報が不正です。');
+   const t=deal.greetingSnapshot;assert(isObj(t)&&greetings.has(t.kind)&&string(t.greeting,500)&&string(t.closing,500),'確定済み挨拶文が不正です。');
+   const own=new Set(deal.itemIds);assert(own.size===deal.itemIds.length,'取引内に重複URLがあります。');
+   const fromParts=[];
+   for(const p of deal.parts){
+    assert(isObj(p)&&Array.isArray(p.ids)&&p.ids.length>=1&&p.ids.length<=6,'1通の送付件数が1〜6件を超えています。');
+    for(const k of ['copyIntentAt','copiedAt','sentAt'])assert(p[k]==null||string(p[k],100),'送付日時の形式が不正です。');
+    assert(p.messageSnapshot==null||string(p.messageSnapshot),'送付文面スナップショットが不正です。');
+    assert(!p.sentAt||!!p.copyIntentAt,'コピー準備なしで送付確認済みです。');
+    if(p.copyIntentAt||p.copiedAt)copiedParts++;if(p.sentAt)sentParts++;
+    if(p.copyIntentAt)assert(typeof p.messageSnapshot==='string'&&p.messageSnapshot.length>0,'コピー準備済みの確定文面がありません。');
+    fromParts.push(...p.ids);
+   }
+   assert(fromParts.length===deal.itemIds.length&&new Set(fromParts).size===fromParts.length&&fromParts.every(id=>own.has(id)),'分割と確保URLが一致しません。');
+   if(deal.parts.length>1)legacyParts++;
+   for(const id of fromParts){
+    const it=itemMap.get(id);assert(it&&it.dealId===deal.id&&it.product===deal.product&&it.store===deal.store,'取引と在庫の関連付けが不正です。');
+    assert(!assigned.has(id),'URLが複数の取引に割り当てられています。');assigned.add(id);
+   }
+   for(const p of deal.parts)for(const id of p.ids){const it=itemMap.get(id);assert(it.status===(p.sentAt?'sent':'reserved'),'送付記録と在庫状態が不一致です。');}
+   dealMap.set(deal.id,deal);
+  }
+  for(const it of d.items)if(it.status!=='available')assert(dealMap.has(it.dealId)&&assigned.has(it.id),'確保・送付履歴の欠落があります。');
+  // LAB12 permits absent buyerSnapshot. The conversion does not fabricate one.
+  const migrated=structuredClone(d);
+  assert(deepEq(d,migrated),'移行用のメモリ上の複製で差分が発生しました。');
+  assert(d.items.every((it,i)=>deepEq(it,migrated.items[i])),'URL・在庫順序の照合失敗。');
+  assert(d.deals.every((it,i)=>deepEq(it,migrated.deals[i])),'取引・送付文面の照合失敗。');
+  assert(deepEq(d.templates,migrated.templates)&&deepEq(d.lastOps,migrated.lastOps)&&d.seq===migrated.seq,'連番・操作履歴・テンプレートの照合失敗。');
+  return {available,reserved,sent,total:d.items.length,deals:d.deals.length,copiedParts,sentParts,legacyParts};
+ }
+ function metric(label,v){const e=document.createElement('div');e.className='metric';const n=document.createElement('strong');n.textContent=String(v);const s=document.createElement('span');s.textContent=label;e.append(n,s);return e;}
+ function showChecks(items){$('checks').replaceChildren();for(const item of items){const li=document.createElement('li');li.textContent='✓ '+item;$('checks').append(li);}}
+ $('check').addEventListener('click',async()=>{const file=$('file').files?.[0];$('report').classList.add('hide');if(!file){$('status').className='status fail';$('status').textContent='JSONファイルを選択してください。';return;}try{assert(file.size>0&&file.size<=8*1024*1024,'ファイルのサイズが不正です（上限8MB）。');const contents=await file.text();const p=JSON.parse(contents);const s=validate(p);$('status').className='status pass';$('status').textContent='検査合格：RC1バックアップの整合性とメモリ内の無変更照合を確認しました。';$('metrics').replaceChildren(metric('登録URL',s.total),metric('利用可能',s.available),metric('確保中',s.reserved),metric('送付済み',s.sent),metric('取引履歴',s.deals),metric('コピー準備ありの通数',s.copiedParts),metric('送付確認済みの通数',s.sentParts),metric('複数通の取引数',s.legacyParts));showChecks(['RC1バックアップ形式・重複チェック','在庫と取引の相互参照','送付状態と確保URLの整合','各通1〜6件・分割の順序保持','コピー準備時刻・送信確認時刻・確定文面の保持','挨拶文・取引連番・操作履歴の保持','購入者情報を推測して補完しない']);$('detail').textContent='判定：読み取り専用の事前検証に合格。\n保存先への取り込み：未実施\n移行後の読み戻し検査：未実施\n正式版切替：未実施';$('report').classList.remove('hide');}catch(e){$('status').className='status fail';$('status').textContent='検査停止：'+e.message;}});
+ $('self').addEventListener('click',()=>{const t={normal:'通常',repeat:'再び',regular:'いつも',closing:'以上'},d={version:3,items:[{id:'https://example.invalid/1',product:'TEST',store:'seven',status:'sent',dealId:'lab-deal-1'},{id:'https://example.invalid/2',product:'TEST',store:'seven',status:'available',dealId:null}],deals:[{id:'lab-deal-1',label:'TEST',product:'TEST',store:'seven',itemIds:['https://example.invalid/1'],greetingSnapshot:{kind:'normal',greeting:'通常',closing:'以上'},parts:[{ids:['https://example.invalid/1'],copyIntentAt:'2026-11-08T10:00:00.000Z',copiedAt:'2026-11-08T10:00:00.000Z',sentAt:'2026-11-08T10:01:00.000Z',messageSnapshot:'test\nhttps://example.invalid/1'}]}],seq:1,lastOps:{},templates:t},p={schema:SCHEMA,data:d};let count=0;try{validate(p);count++;try{validate({...p,schema:'wrong'});throw Error('識別子検査が失敗');}catch(e){if(e.message==='識別子検査が失敗')throw e;count++;}const x=structuredClone(p);x.data.items[0].status='available';try{validate(x);throw Error('在庫整合検査が失敗');}catch(e){if(e.message==='在庫整合検査が失敗')throw e;count++;}const y=structuredClone(p);y.data.deals[0].parts[0].messageSnapshot=null;try{validate(y);throw Error('コピー文面欠落検査が失敗');}catch(e){if(e.message==='コピー文面欠落検査が失敗')throw e;count++;}$('selfResult').className='pass';$('selfResult').textContent='ダミー自己診断：'+count+'/4 合格。既存データは変更していません。';}catch(e){$('selfResult').className='fail';$('selfResult').textContent='ダミー自己診断に失敗：'+e.message;}});
+})();
+</script></body></html>
