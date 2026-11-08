@@ -396,11 +396,12 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 .split-custom .hint{margin:8px 0}
 .split-custom button{width:100%}
 </style></head><body>
-<h1>クーポン管理 <span class="badge">購入者連携＋任意分割 LAB 12・実験版</span></h1><p class="sub">iPhone Safari向け・取引と購入者台帳の手動関連付け・RC1/LAB 08とは独立</p>
+<h1>クーポン管理 <span class="badge">購入者連携＋任意分割 LAB 12・統合確認用</span></h1><p class="sub">iPhone Safari向け・取引と購入者台帳の手動関連付け・RC1/LAB 08とは独立</p>
 <div class="warning">⚠️ LAB 12は購入者連携・登録前確認・任意分割の独立統合実験版です。RC1・LAB 09・LAB 10・LAB 11とは別の保存領域です。実際の購入者ID・当選URLは登録せず、ダミーデータで検証してください。</div>
 <details class="card lab07-dev-panel" id="lab07DevPanel">
 <summary>🛠 自動テスト・診断ログ（通常は閉じる）</summary>
 <p class="hint">自動テストはメモリ内のダミーデータで実行し、保存済みの在庫・取引・送付履歴は変更しません。ログにURL全文は記録しません。</p>
+<div class="lab07-dev-seed" style="border:1px solid #b9d4d0;border-radius:10px;padding:12px;margin:12px 0;background:#f0faf7"><strong>LAB 12 統合確認用ダミーデータ</strong><p class="hint">URL 7件と購入者1件を、両方の台帳が未使用の場合だけ作成します。架空の example.invalid URLです。実在クーポンではなく、実際の取引には送らないでください。</p><button type="button" id="seedLab12Joint" class="primary">統合テスト用の7件＋購入者を準備</button><p class="hint" id="seedLab12JointStatus" role="status" aria-live="polite">既存データがある場合は実行しません。</p></div>
 <details class="card" id="debugPanel"><summary>自己診断を開く</summary><div class="row"><button type="button" id="runTests">自動テスト実行</button><button type="button" id="copyLog">ログをコピー</button></div><div id="testResult" class="hint" aria-live="polite">未実施</div><pre id="debugLog" class="debug-log" aria-live="polite"></pre></details>
 </details>
 <div id="notice" role="status" aria-live="polite"></div>
@@ -944,6 +945,30 @@ run('台帳：自動テスト後のデータ不変',()=>JSON.stringify(buyers)==
  run('LAB12 コピー中の文面スナップショットを保持',()=>{const d={itemIds:['a','b'],parts:[{ids:['a','b'],copyIntentAt:'TEST',messageSnapshot:'固定済み文面'}],product:'test',store:'seven'};return compose(d,d.parts[0],0)==='固定済み文面'});
 run('テスト後のデータ不変',()=>JSON.stringify(db)===snap);$('testResult').textContent=`自動テスト：${passed}/${total} 合格` ;log(passed===total?'INFO':'ERROR',`自動テスト終了：${passed}/${total} 合格`);});
 $('copyLog').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(logEntries.join('\n'));log('INFO','ログをコピーしました');}catch{log('WARN','コピーできません。ログ本文を選択してください');}});
+// LAB12 joint integration verification only. Never replace or extend non-pristine data.
+$('seedLab12Joint').addEventListener('click',()=>{
+ const status=$('seedLab12JointStatus');
+ try{
+  if(blocked||buyerBlocked)throw Error('保存データに異常があるため中止しました');
+  if(JSON.stringify(db)!==JSON.stringify(initial())||buyers.records.length!==0)throw Error('未使用の検証領域でのみ利用できます。既存の在庫・取引・購入者は変更していません');
+  const keys=Array.from({length:7},(_,i)=>`https://lab12-test-${String(i+1).padStart(2,'0')}.example.invalid/coupon`);
+  const next=structuredClone(db);
+  next.items=keys.map(id=>({id,product:'LAB12統合テスト350ml',store:'seven',status:'available',dealId:null}));
+  const now=new Date().toISOString();
+  const ledger={schema:BUYER_SCHEMA,records:[makeBuyerRecord('lab','LAB12専用テスト','repeat','unknown','架空の購入者','buyer-lab12-joint-test',now,'lab12_fake_001','LAB12テスト購入者')]};
+  strictCheck(next);validateBuyerLedger(ledger);
+  if(!confirm('LAB12の未使用保存領域に架空URL7件とダミー購入者1件を準備します。実在のURLは含みません。よろしいですか？'))return;
+  // Refuse if either storage changed after initial inspection.
+  if(JSON.stringify(db)!==JSON.stringify(initial())||buyers.records.length!==0)throw Error('検証領域が変更されました。中止しました');
+  const oldBuyerRaw=localStorage.getItem(BUYER_KEY);
+  localStorage.setItem(BUYER_KEY,JSON.stringify(ledger));
+  try {localStorage.setItem(KEY,JSON.stringify(next));}
+  catch(e){if(oldBuyerRaw===null)localStorage.removeItem(BUYER_KEY);else localStorage.setItem(BUYER_KEY,oldBuyerRaw);throw e;}
+  buyers=ledger;db=next;renderBuyers();render();refreshBackupUI();
+  status.textContent='✓ 架空URL7件・購入者1件を準備しました。数量7と購入者を選んで確保できます。';
+  log('PASS','LAB12 統合テスト用の架空URL7件・ダミー購入者1件を準備');
+ }catch(e){status.textContent='準備を中止：'+e.message;log('WARN','LAB12テスト準備拒否：'+e.message);}
+});
 log('INFO','LAB 12統合候補起動。RC1・LAB 09/10/11と保存領域を分離。ダミーデータで検証してください。');
 render();
 })();
