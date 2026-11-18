@@ -8,6 +8,36 @@ const main=scripts[scripts.length-1];
 const START='const cloudConfirmStates=new Map();',END='function render(){';
 const block=main.slice(main.indexOf(START),main.indexOf(END));
 
+function confirmationEnv(){
+ const nodes=[];let active;
+ const make=()=>({children:[],inert:false,style:{},listeners:{},setAttribute(){},append(...n){this.children.push(...n)},addEventListener(k,f){this.listeners[k]=f},focus(){active=this},remove(){const i=body.children.indexOf(this);if(i>=0)body.children.splice(i,1)}});
+ const body=make(),background=make(),status={};body.append(background);
+ const window={};const document={body,get activeElement(){return active},getElementById:()=>status,createElement(){const n=make();nodes.push(n);return n}};
+ vm.runInNewContext(scripts[0],{window,document,Promise});
+ return {window,body,background,nodes,status};
+}
+test('registration confirmation cancels without accepting and restores background',async()=>{
+ const e=confirmationEnv();const result=e.window.rc2RegistrationConfirm('TEST');
+ assert.equal(e.background.inert,true);
+ e.nodes.find(n=>n.textContent==='キャンセル').listeners.click();
+ assert.equal(await result,false);assert.equal(e.background.inert,false);assert.equal(e.body.children.length,1);
+});
+test('registration confirmation requires explicit accept',async()=>{
+ const e=confirmationEnv();const result=e.window.rc2RegistrationConfirm('TEST');
+ e.nodes.find(n=>n.textContent==='確認した内容で登録する').listeners.click();
+ assert.equal(await result,true);assert.equal(e.background.inert,false);
+});
+test('duplicate confirmation does not create a second dialog',async()=>{
+ const e=confirmationEnv();const first=e.window.rc2RegistrationConfirm('TEST');
+ assert.equal(await e.window.rc2RegistrationConfirm('TEST'),false);assert.equal(e.body.children.length,2);
+ e.nodes.find(n=>n.textContent==='キャンセル').listeners.click();assert.equal(await first,false);
+});
+test('Escape cancels registration confirmation',async()=>{
+ const e=confirmationEnv();const result=e.window.rc2RegistrationConfirm('TEST');
+ e.body.children[1].listeners.keydown({key:'Escape',preventDefault(){}});
+ assert.equal(await result,false);
+});
+
 function makeEnv(items){
  const frames=[],listeners={},scrolls=[],panels=[];
  const mkPanel=()=>({className:'',dataset:{},children:[],attrs:{},placed:null,
