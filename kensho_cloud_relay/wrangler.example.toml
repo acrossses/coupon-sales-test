@@ -1,0 +1,17 @@
+# Example only. Review the deployed source, bindings and environment before use.
+# No production or test D1 is selected by this template.
+name = "REPLACE_WITH_REVIEWED_WORKER_NAME"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "https://acrossses.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "REPLACE_WITH_REVIEWED_DATABASE_NAME"
+database_id = "REPLACE_WITH_REVIEWED_D1_ID"
+
+# Existing secrets: SENDER_KEY, RECEIVER_KEY, ENCRYPTION_KEY.
+# Never rotate the encryption key as part of this update.
