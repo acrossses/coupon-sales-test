@@ -32,6 +32,8 @@ test('corrupt saved inventory remains untouched and rejects writes',()=>{
 });
 test('keys cannot be sent to test Worker or arbitrary HTTPS hosts',()=>{
  const relay=html.slice(html.indexOf('const KenshoRelay = (()=>{'),html.indexOf('\nconst relayInbox=KenshoRelay.mount('));const api=vm.runInNewContext(relay+';KenshoRelay',{URL});
- assert.equal(api.baseURL('https://kensho-relay.8tgnaba5thaga.workers.dev'),'https://kensho-relay.8tgnaba5thaga.workers.dev');
- for(const raw of ['https://kensho-relay-phase2-test.8tgnaba5thaga.workers.dev','https://attacker.invalid','https://kensho-relay.8tgnaba5thaga.workers.dev.attacker.invalid','https://kensho-relay.8tgnaba5thaga.workers.dev/?key=oops'])assert.throws(()=>api.baseURL(raw));
+ assert.match(html, /id="relayBase"[^>]*value="https:\/\/kensho-relay\.coupon-relay-hub\.workers\.dev"/);
+ assert.equal(api.baseURL('https://kensho-relay.coupon-relay-hub.workers.dev'),'https://kensho-relay.coupon-relay-hub.workers.dev');
+ for(const raw of ['https://kensho-relay.8tgnaba5thaga.workers.dev','https://kensho-relay-phase2-test.coupon-relay-hub.workers.dev','https://attacker.invalid','https://kensho-relay.coupon-relay-hub.workers.dev.attacker.invalid','https://kensho-relay.coupon-relay-hub.workers.dev/?key=oops'])assert.throws(()=>api.baseURL(raw));
 });
+
