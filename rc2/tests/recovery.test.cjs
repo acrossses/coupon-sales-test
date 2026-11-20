@@ -4,7 +4,7 @@ const relay=html.slice(html.indexOf('const KenshoRelay = (()=>{'),html.indexOf('
 const item={id:'00000000-0000-0000-0000-000000000001',url:'https://example.invalid/dummy',product:'TEST',store:'famima',campaign:'TEST',status:'pending'};
 class Element{constructor(){this.value='';this.children=[];this.listeners={};this.hidden=false;this.disabled=false}addEventListener(k,f){this.listeners[k]=f}async emit(k){return this.listeners[k]?.()}replaceChildren(...n){this.children=n}append(...n){this.children.push(...n)}remove(){this.removed=true}}
 function client({disk=[{id:item.url,product:'TEST',store:'famima'}],incoming=item,fail=false,ackApplied=true}={}){
- const nodes=Object.fromEntries(['relayBase','relayKey','relayStatus','relayFetch','relayForget','relayItems'].map(k=>[k,new Element()]));nodes.relayBase.value='https://kensho-relay.8tgnaba5thaga.workers.dev';nodes.relayKey.value='dummy';
+ const nodes=Object.fromEntries(['relayBase','relayKey','relayStatus','relayFetch','relayForget','relayItems'].map(k=>[k,new Element()]));nodes.relayBase.value='https://kensho-relay.coupon-relay-hub.workers.dev';nodes.relayKey.value='dummy';
  const requests=[],states=[];let pending=true,failNext=fail;
  const match=x=>disk.some(y=>y.id===x.url&&y.product===x.product&&(x.store==='other'?y.store.startsWith('other:'):y.store===x.store));
  const ctx=vm.createContext({URL,Response,AbortController,setTimeout,clearTimeout,document:{getElementById:k=>nodes[k],createElement:()=>new Element(),createTextNode:s=>s},window:{addEventListener(){}},fetch:async(url,opts={})=>{
@@ -40,3 +40,4 @@ test('stale retry callback after refresh is rejected',async()=>{
 test('forgetting credentials invalidates existing retry',async()=>{
  const c=client();await c.nodes.relayFetch.emit('click');const b=c.retry();await c.nodes.relayForget.emit('click');await b.emit('click');assert.equal(c.posts().length,0);assert.equal(c.nodes.relayKey.value,'');
 });
+

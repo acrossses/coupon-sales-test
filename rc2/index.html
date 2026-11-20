@@ -412,7 +412,7 @@ textarea{display:block;width:100%;min-height:120px;font:inherit;font-size:15px;p
 
 <section class="card panel" id="relayPanel"><h2>クラウド新着（任意）</h2>
 <p>取得した新着は、内容を確認してから登録します。保存済みの新着は、再登録せず完了通知だけを再送できます。</p>
-<label>接続先<input id="relayBase" type="url" value="https://kensho-relay.8tgnaba5thaga.workers.dev" readonly autocomplete="off"></label>
+<label>接続先<input id="relayBase" type="url" value="https://kensho-relay.coupon-relay-hub.workers.dev" readonly autocomplete="off"></label>
 <label>受信キー（この画面だけで使用）<input id="relayKey" type="password" autocomplete="off" spellcheck="false"></label>
 <button id="relayFetch" type="button">クラウド新着取得</button> <button id="relayForget" type="button">キー・新着を消去</button>
 <p id="relayStatus" role="status" aria-live="polite">未接続。先頭200件まで取得。RC2への保存成功を確認後、中継へ自動通知します。失敗時のみ手動で再通知できます。PCからは通知しません。</p><div id="relayItems"></div></section><section class="card"><h2>① URL一括登録</h2><p class="hint">URLを1行1件で入力。店舗は既知のドメインだけ仮判定し、不明なURLは手動で選択します。商品名はURLから推測しません。</p><label>商品名（必須）<input id="newProduct" placeholder="例：金麦 350ml" maxlength="100" autocomplete="off"></label><label>URL（1行1件）<textarea id="urlInput" rows="5" placeholder="https://coupon.sej.co.jp/test/001&#10;https://ncpfa.famima.com/test/002"></textarea></label><button type="button" id="checkUrls" class="primary action">重複・店舗判定を確認</button><div id="checkSummary" role="status" aria-live="polite"></div><div id="bulkAssign" class="reg-bulk" hidden><strong>交換先の一括指定（選んだURLだけ）</strong><p class="hint">変更する行だけチェックします。初期状態では選択されません。既知店舗の仮判定も、意図せず一括変更しません。</p><div class="row"><button type="button" id="selectUnknownRows">未分類の行を選択</button><button type="button" id="clearBulkRows">選択解除</button></div><div id="bulkSelectionCount" class="reg-bulk-count">選択0件</div><label>指定する交換先<select id="bulkStore"></select></label><label id="bulkOtherWrap" class="reg-other" hidden>交換先名（その他）<input id="bulkOtherName" maxlength="50" placeholder="例：ケンタッキー" autocomplete="off"></label><button type="button" id="applyBulk" class="action">選択した行に交換先を指定</button></div><div id="checkResults"></div><div id="inspectionStatus" class="reg-inspection-status" role="status" aria-live="polite" hidden></div><button type="button" id="reviewUrls" class="action" hidden>登録内容を再検査・最終確認</button><div id="registrationReview" class="reg-review" hidden role="status" aria-live="polite"></div><button type="button" id="commitUrls" class="primary action" hidden>確認した新規URLを登録</button></section>
@@ -1044,7 +1044,7 @@ const KenshoRelay = (()=>{
  function baseURL(raw){
   let u;try{u=new URL(raw);}catch{throw Error('クラウド接続先を確認してください');}
   if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||u.pathname!=='/')throw Error('WorkerのHTTPSオリジンだけを指定してください');
-  if(u.origin!=="https://kensho-relay.8tgnaba5thaga.workers.dev")throw Error('登録されたクラウド接続先以外には送信できません');
+  if(u.origin!=="https://kensho-relay.coupon-relay-hub.workers.dev")throw Error('登録されたクラウド接続先以外には送信できません');
   return u.origin;
  }
  function validateItems(data){
@@ -1129,3 +1129,4 @@ const relayInbox=KenshoRelay.mount({
 });
 })();
 </script></body></html>
+

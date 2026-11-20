@@ -1044,7 +1044,7 @@ const KenshoRelay = (()=>{
  function baseURL(raw){
   let u;try{u=new URL(raw);}catch{throw Error('テストWorkerのHTTPS URLを入力してください');}
   if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||u.pathname!=='/')throw Error('WorkerのHTTPSオリジンだけを指定してください');
-  if(u.hostname==='kensho-relay.8tgnaba5thaga.workers.dev')throw Error('この検証版は既存の本番Workerへの接続を拒否します');
+  if(['kensho-relay.8tgnaba5thaga.workers.dev','kensho-relay.coupon-relay-hub.workers.dev'].includes(u.hostname))throw Error('この検証版は既存の本番Workerへの接続を拒否します');
   return u.origin;
  }
  function validateItems(data){
@@ -1129,3 +1129,4 @@ const relayInbox=KenshoRelay.mount({
 });
 })();
 </script></body></html>
+
