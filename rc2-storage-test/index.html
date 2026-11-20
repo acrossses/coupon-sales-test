@@ -564,7 +564,8 @@ const KEY='coupon_sales_release_rc2_storagetest', $=id=>document.getElementById(
 const PLAN_KEYS=[KEY,'coupon_sales_release_rc2_registry_v1_storagetest','coupon_sales_release_rc2_backup_evidence_v1_storagetest'];
 let storageNeedsReload=false;
 function storagePlanMessage(text){$('storagePlanMessage').textContent=text;}
-function storagePlanControls(){if(storagePlan.available&&!storageNeedsReload)return;for(const node of document.querySelectorAll('[data-action],#commitUrls,#backupImport,#saveGreeting,#buyerSave,#buyerImport,#buyerConfirmSaved,#transactionConfirmSaved,#relayFetch'))node.disabled=true;}
+function storageWritesAllowed(){return storagePlan.available&&!storageNeedsReload;}
+function storagePlanControls(){if(storageWritesAllowed())return;for(const node of document.querySelectorAll('[data-action],#commitUrls,#backupImport,#saveGreeting,#buyerSave,#buyerImport,#buyerConfirmSaved,#transactionConfirmSaved,#relayFetch,#relayItems button,.cloud-confirm-state button'))node.disabled=true;}
 const storagePlan=createStoragePlanA({storage:localStorage,locks:typeof navigator==='undefined'?null:navigator.locks,keys:PLAN_KEYS,onConflict(key){storageNeedsReload=true;storagePlanMessage('変更あり：別タブの保存内容が変わりました。この操作は保存せず停止しました。再読込して内容を確認してください。');storagePlanControls();},onUncertain(){storageNeedsReload=true;storagePlanMessage('保存直後の内容が一致しません。競合の可能性があります。保存済みか未確定のため再読込して確認してください。');storagePlanControls();}});
 $('storagePlanReload').addEventListener('click',()=>window.location.reload());
 if(!storagePlan.available)storagePlanMessage('閲覧専用：Web Locks非対応のため保存・コピー・中継取得を停止しています。');
@@ -659,7 +660,7 @@ function displayCloudConfirmStates(){
   message.textContent=(entry.state==='done'?'入庫＋1｜クラウドに通知完了':entry.state==='failed'?'入庫＋1｜クラウドへの通知失敗':entry.state==='review'?'入庫＋1｜クラウド通知保留（商品・交換先の確認が必要）':'入庫＋1｜クラウドへ通知中')+where;
   panel.append(message);
   if(entry.state==='failed'&&typeof entry.retry==='function'){
-   const retry=document.createElement('button');retry.type='button';retry.textContent='再通知';
+   const retry=document.createElement('button');retry.type='button';retry.textContent='再通知';retry.disabled=typeof storageWritesAllowed==='function'&&!storageWritesAllowed();
    retry.addEventListener('click',entry.retry);panel.append(retry);
   }
   // Never hide a failed notification/retry. If the card is not found, show it
@@ -885,7 +886,7 @@ $('selectUnknownRows').addEventListener('click',()=>{$('checkResults').querySele
 $('clearBulkRows').addEventListener('click',()=>{$('checkResults').querySelectorAll('.reg-row-check').forEach(x=>x.checked=false);updateBulkCount();});
 $('applyBulk').addEventListener('click',()=>{try{verifyPreview();const rows=[...$('checkResults').querySelectorAll('.check-item[data-reg-line]')].filter(row=>row.querySelector('.reg-row-check').checked);if(!rows.length)throw Error('一括指定する行を選択してください');const store=readStoreSelect($('bulkStore'),$('bulkOtherName'));if(!isValidStore(store))throw Error('交換先を指定してください');if(!confirm(`選択した${rows.length}件の交換先を「${storeName(store)}」に変更しますか？\n※登録はまだ実行しません。`))return;for(const row of rows){const select=row.querySelector('.reg-row-store'),input=row.querySelector('.reg-row-other');populateStoreSelect(select,store);row.querySelector('.reg-other').hidden=true;input.value='';row.querySelector('.reg-row-check').checked=false;row.querySelector('.reg-inspected').checked=false;}resetRegistrationReview();inspectionProgress();updateBulkCount();$('checkSummary').textContent=`✓ ${rows.length}件を「${storeName(store)}」に一括指定しました。登録前に再検査してください。`;log('INFO',`交換先一括指定 ${rows.length}件。登録は未実行`);}catch(e){alert(e.message);}});
 $('checkUrls').addEventListener('click',()=>{try{if(blocked)throw new Error('保存領域を確認してください');const product=$('newProduct').value.trim(),raw=$('urlInput').value;if(!product)throw new Error('商品名を入力してください');const lines=analyze(raw,db.items);if(!lines.length)throw new Error('URLを入力してください');preview={product,raw,lines,dbStamp:JSON.stringify(db.items.map(x=>x.id)),reviewed:null};const fresh=lines.filter(x=>!x.invalid&&!x.duplicate&&!x.registered),duplicates=lines.filter(x=>x.duplicate||x.registered),errors=lines.filter(x=>x.invalid);$('checkSummary').textContent=`入力 ${lines.length}行｜新規候補 ${fresh.length}件｜重複 ${duplicates.length}行｜形式エラー ${errors.length}行`;const root=$('checkResults');root.replaceChildren();for(const x of lines){const div=document.createElement('div');div.className='check-item';const label=document.createElement('div');label.textContent=`${x.line}行目：${duplicateDescription(x)}｜${masked(x.value)}`;div.append(label);if(!x.invalid){const link=document.createElement('a');link.href=x.value;link.target='_blank';link.rel='noopener noreferrer';link.referrerPolicy='no-referrer';link.textContent='URLを開いてクーポン内容を目視確認';link.className='reg-inspect-link';div.append(link);}if(!x.invalid&&!x.duplicate&&!x.registered){div.dataset.regLine=String(x.line);const top=document.createElement('div');top.className='reg-row-top';const cbLabel=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.className='reg-row-check';cbLabel.append(cb,document.createTextNode('一括指定の対象にする'));top.append(cbLabel);div.append(top);const select=document.createElement('select');select.className='reg-row-store';select.setAttribute('aria-label',`${x.line}行目の交換先`);populateStoreSelect(select,x.store);div.append(select);const customLabel=document.createElement('label');customLabel.className='reg-other';customLabel.hidden=true;customLabel.textContent='新しい交換先名（その他）';const input=document.createElement('input');input.className='reg-row-other';input.maxLength=50;input.placeholder='例：ケンタッキー';customLabel.append(input);div.append(customLabel);const inspected=document.createElement('div');inspected.className='reg-inspection';const inspectedLabel=document.createElement('label');const inspectedCheck=document.createElement('input');inspectedCheck.type='checkbox';inspectedCheck.className='reg-inspected';inspectedCheck.setAttribute('aria-label',`${x.line}行目のクーポン内容を目視確認済み`);const inspectedText=document.createElement('span');inspectedText.textContent='このURLのクーポン内容・商品名・交換先を確認した';inspectedLabel.append(inspectedCheck,inspectedText);inspected.append(inspectedLabel);div.append(inspected);}root.append(div);}populateStoreSelect($('bulkStore'),'');$('bulkOtherWrap').hidden=true;$('bulkOtherName').value='';$('bulkAssign').hidden=!fresh.length;$('reviewUrls').hidden=!fresh.length;resetRegistrationReview();updateBulkCount();inspectionProgress();log('INFO',`照合：入力${lines.length}件・新規${fresh.length}件・重複${duplicates.length}件・形式不正${errors.length}件`);}catch(e){clearRegistration();$('checkSummary').textContent='確認できません：'+e.message;log('WARN','照合中断：入力または保存状態を確認してください');}});
-$('reviewUrls').addEventListener('click',()=>{try{const selections=registrationSelections();requireInspected(selections);const manual=selections.filter(({x,store})=>x.store!==store).length;const counts={};for(const {store} of selections)counts[store]=(counts[store]||0)+1;const fingerprint=registrationFingerprint(selections);const div=$('registrationReview');div.replaceChildren();const summary=document.createElement('div');summary.textContent=`【商品】${preview.product}\n【新規登録】${selections.length}件\n【交換先】${Object.entries(counts).map(([store,n])=>`${storeName(store)} ${n}件`).join(' / ')}\n【手動判定・変更】${manual}件\n【URL目視確認】${inspectedCount()}件\n【重複・形式エラー除外】${preview.lines.length-selections.length}行\n\n商品・交換先・URLの内容を実際に確認してください。URLの中身やクーポン画像は自動では検証していません。`;const ackLabel=document.createElement('label');ackLabel.className='reg-ack';const ack=document.createElement('input');ack.type='checkbox';const ackText=document.createElement('span');ackText.textContent='商品名と交換先を目視確認しました（推測だけで登録しません）';ackLabel.append(ack,ackText);div.append(summary,ackLabel);div.hidden=false;preview.reviewed={fingerprint,ack:false};$('commitUrls').hidden=false;$('commitUrls').disabled=true;ack.addEventListener('change',()=>{preview.reviewed.ack=ack.checked;$('commitUrls').disabled=!ack.checked;});log('INFO',`登録前の再検査：新規${selections.length}件。目視確認待ち`);}catch(e){resetRegistrationReview();inspectionProgress();$('checkSummary').textContent='再検査できません：'+e.message;}});
+$('reviewUrls').addEventListener('click',()=>{try{const selections=registrationSelections();requireInspected(selections);const manual=selections.filter(({x,store})=>x.store!==store).length;const counts={};for(const {store} of selections)counts[store]=(counts[store]||0)+1;const fingerprint=registrationFingerprint(selections);const div=$('registrationReview');div.replaceChildren();const summary=document.createElement('div');summary.textContent=`【商品】${preview.product}\n【新規登録】${selections.length}件\n【交換先】${Object.entries(counts).map(([store,n])=>`${storeName(store)} ${n}件`).join(' / ')}\n【手動判定・変更】${manual}件\n【URL目視確認】${inspectedCount()}件\n【重複・形式エラー除外】${preview.lines.length-selections.length}行\n\n商品・交換先・URLの内容を実際に確認してください。URLの中身やクーポン画像は自動では検証していません。`;const ackLabel=document.createElement('label');ackLabel.className='reg-ack';const ack=document.createElement('input');ack.type='checkbox';const ackText=document.createElement('span');ackText.textContent='商品名と交換先を目視確認しました（推測だけで登録しません）';ackLabel.append(ack,ackText);div.append(summary,ackLabel);div.hidden=false;preview.reviewed={fingerprint,ack:false};$('commitUrls').hidden=false;$('commitUrls').disabled=true;ack.addEventListener('change',()=>{preview.reviewed.ack=ack.checked;$('commitUrls').disabled=!ack.checked||!storageWritesAllowed();});log('INFO',`登録前の再検査：新規${selections.length}件。目視確認待ち`);}catch(e){resetRegistrationReview();inspectionProgress();$('checkSummary').textContent='再検査できません：'+e.message;}});
 $('commitUrls').addEventListener('click',async()=>{try{const expected=storagePlan.snapshot(KEY);const selections=registrationSelections();requireInspected(selections);if(blocked)throw Error('保存領域が使用できません');if(!preview.reviewed?.ack||preview.reviewed.fingerprint!==registrationFingerprint(selections))throw Error('登録内容が変更されています。再検査・最終確認をやり直してください');const manual=selections.filter(({x,store})=>x.store!==store).length;const counts={};for(const {store} of selections)counts[store]=(counts[store]||0)+1;const detail=Object.entries(counts).map(([st,n])=>`${storeName(st)} ${n}件`).join(' / ');if(!await window.rc2RegistrationConfirm(`【商品】${preview.product}\n【新規登録】${detail}\n【手動判定・変更】${manual}件\n目視確認したURLだけ登録しますか？`)){ $('checkSummary').textContent='登録をキャンセルしました。';return;}if(blocked)throw Error('保存領域が使用できません');registrationSelections();requireInspected(selections);if(!preview.reviewed?.ack||preview.reviewed.fingerprint!==registrationFingerprint(selections))throw Error('登録内容が変更されています。再検査・最終確認をやり直してください');await update(next=>{registrationSelections();requireInspected(selections);if(!preview.reviewed?.ack||preview.reviewed.fingerprint!==registrationFingerprint(selections))throw Error('登録内容が変更されています');for(const {x,store} of selections)next.items.push({id:x.value,product:preview.product,store,status:'available',dealId:null});for(const [st,n] of Object.entries(counts))next.lastOps[`${preview.product}|${st}`]=`入庫 ＋${n}件`;strictCheck(next);},{expected});relayInbox.recordSaved(selections.map(({x})=>x.value));const count=selections.length;clearRegistration();$('urlInput').value='';$('newProduct').value='';$('checkSummary').textContent=`✓ ${count}件の登録が完了しました。`;note(`${count}件のURLを交換先別に登録しました。`);log('PASS',`最終確認後に${count}件を登録。URL全文はログへ出力していません。`);}catch(e){resetRegistrationReview();$('checkSummary').textContent='登録できません：'+e.message;log('ERROR','登録中断：'+e.message);}});
 const BACKUP_SCHEMA='coupon-sales-release-rc2-v1';
 function strictCheck(data){
@@ -932,7 +933,7 @@ function renderBackupUI(){
  for(const [type,id] of [['buyer','buyerLastBackup'],['transaction','transactionLastBackup']]){
  const v=backupMeta[type];const extra=v.pending?' ／ 新規作成・保存未確認':'';
  $(id).textContent=`保存確認：${formatBackupTime(v.confirmedAt)}${extra}`;
- $(type==='buyer'?'buyerConfirmSaved':'transactionConfirmSaved').disabled=!v.pending;
+ $(type==='buyer'?'buyerConfirmSaved':'transactionConfirmSaved').disabled=!v.pending||!storageWritesAllowed();
  }
  const status=[];
  for(const type of ['transaction','buyer']){const level=reminderLevel(type);if(level)status.push(`${type==='buyer'?'購入者台帳':'在庫・取引'}：最終保存確認から${level===2?'14日以上':'7日以上'}経過${backupMeta[type].confirmedAt?'':'（まだ保存確認なし）'}`);}
@@ -940,14 +941,30 @@ function renderBackupUI(){
  const el=$('backupReminder');el.hidden=!status.length;el.textContent=status.length?'🔔 バックアップ確認のお願い：'+status.join(' ／ '):'';
  el.dataset.urgent=status.some(v=>v.includes('在庫・取引'))?'true':'false';
 }
-async function markBackupCreated(type){const now=new Date().toISOString();return saveBackupMeta(next=>{next[type].createdAt=now;next[type].pending=true;});}
+async function markBackupCreated(type,createdAt=new Date().toISOString()){return saveBackupMeta(next=>{next[type].createdAt=createdAt;next[type].pending=true;});}
 async function confirmBackupSaved(type){const expected=storagePlan.snapshot(BACKUP_META_KEY);if(!backupMeta[type].pending)return; if(!confirm(`${type==='buyer'?'購入者台帳':'在庫・取引'}のJSONファイルが、保存先にあることを確認しましたか？`))return;
  const now=new Date().toISOString();await saveBackupMeta(next=>{if(!next[type].pending)throw Error('保存確認待ちではありません');next[type].confirmedAt=now;next[type].pending=false;},expected);}
 $('buyerConfirmSaved').addEventListener('click',()=>confirmBackupSaved('buyer'));
 $('transactionConfirmSaved').addEventListener('click',()=>confirmBackupSaved('transaction'));
 function backupFilename(){const raw=$('backupName').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/\s+/g,'_').replace(/^\.+|\.+$/g,'').slice(0,70);return 'coupon_rc2_backup_'+(raw||new Date().toISOString().slice(0,10))+'.json';}
 function downloadBackup(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);}
-$('backupExport').addEventListener('click',async()=>{try{strictCheck(db);const payload={schema:BACKUP_SCHEMA,exportedAt:new Date().toISOString(),data:db};const name=backupFilename();const json=JSON.stringify(payload,null,2);const file=new File([json],name,{type:'application/json'});await markBackupCreated('transaction');if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});$('backupStatus').textContent='共有メニューを開きました。「ファイルに保存」で保存先と保存完了を確認してください。';log('INFO',`バックアップ共有処理 ${db.items.length}件（保存先は未確認）`);}catch(err){if(err.name==='AbortError'){$('backupStatus').textContent='保存先選択をキャンセルしました。バックアップ保存は未確認です。';log('INFO','保存先選択がキャンセルされました');}else{$('backupStatus').textContent='共有メニューの処理に失敗しました。保存は未確認です：'+err.message;log('WARN','共有メニューによる保存に失敗');}}return;}downloadBackup(file,name);$('backupStatus').textContent='通常ダウンロードを開始しました。Safariのダウンロード先でファイルを確認してください。';log('INFO',`通常ダウンロード開始 ${db.items.length}件（保存先は未確認）`);}catch(err){$('backupStatus').textContent='バックアップ失敗：'+err.message;log('ERROR','バックアップ書出し停止');}});
+$('backupExport').addEventListener('click',async()=>{try{
+ strictCheck(db);const payload={schema:BACKUP_SCHEMA,exportedAt:new Date().toISOString(),data:db};const name=backupFilename();const file=new File([JSON.stringify(payload,null,2)],name,{type:'application/json'});
+ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+  try{
+   const sharing=navigator.share({files:[file]});
+   await sharing;
+   const evidence=await markBackupCreated('transaction',payload.exportedAt);
+   $('backupStatus').textContent='共有先への受け渡しが完了しました。ファイルの保存先・保存完了を確認してから「保存済みを確認」を押してください。'+(evidence?'':' 補助情報の記録には失敗しました。');
+   log('INFO','バックアップ共有の受け渡し完了（ファイル保存は未確認）');
+  }catch(err){$('backupStatus').textContent=err.name==='AbortError'?'今回の共有をキャンセルしました。保存確認の記録は更新していません。':'共有に失敗しました。保存確認の記録は更新していません：'+err.message;log('WARN','バックアップ共有未完了：保存確認記録は変更なし');}
+  return;
+ }
+ downloadBackup(file,name);
+ const evidence=await markBackupCreated('transaction',payload.exportedAt);
+ $('backupStatus').textContent='通常ダウンロードを開始しました。保存先のファイルを確認してから「保存済みを確認」を押してください。'+(evidence?'':' 補助情報の記録には失敗しました。');
+ log('INFO','バックアップダウンロード開始（ファイル保存は未確認）');
+}catch(err){$('backupStatus').textContent='バックアップ失敗：'+err.message;log('ERROR','バックアップ書出し停止');}});
 // 完全一致を最優先。件数だけで「空」と判断しない。
 function identicalBackupData(current,incoming){return JSON.stringify(current)===JSON.stringify(incoming);}
 function pristineRestoreTarget(current){return identicalBackupData(current,initial());}
@@ -1065,11 +1082,20 @@ $('buyerSave').addEventListener('click',async()=>{try{const expected=storagePlan
  }catch(err){$('buyerStatus').textContent='保存停止：'+err.message;}});
 function buyerExportName(){const n=$('buyerBackupName').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').slice(0,60);return 'coupon_buyer_rc2_'+(n||new Date().toISOString().slice(0,10))+'.json';}
 $('buyerExport').addEventListener('click',async()=>{try{
- validateBuyerLedger(buyers);const file=new File([JSON.stringify(buyers,null,2)],buyerExportName(),{type:'application/json'});await markBackupCreated('buyer');
+ validateBuyerLedger(buyers);const createdAt=new Date().toISOString();const file=new File([JSON.stringify(buyers,null,2)],buyerExportName(),{type:'application/json'});
  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-  try{await navigator.share({files:[file]});$('buyerBackupStatus').textContent='共有メニューを開きました。「ファイルに保存」で保存完了を確認してください。';}catch(e){$('buyerBackupStatus').textContent=e.name==='AbortError'?'保存先選択を中止しました':'共有に失敗しました：'+e.message;}
- }else{downloadBackup(file,file.name);$('buyerBackupStatus').textContent='通常ダウンロードを開始しました。保存先を確認してください。';}
- }catch(e){$('buyerBackupStatus').textContent='バックアップ停止：'+e.message;}});
+  try{
+   const sharing=navigator.share({files:[file]});
+   await sharing;
+   const evidence=await markBackupCreated('buyer',createdAt);
+   $('buyerBackupStatus').textContent='共有先への受け渡しが完了しました。ファイルの保存先・保存完了を確認してから「保存済みを確認」を押してください。'+(evidence?'':' 補助情報の記録には失敗しました。');
+  }catch(e){$('buyerBackupStatus').textContent=e.name==='AbortError'?'今回の共有をキャンセルしました。保存確認の記録は更新していません。':'共有に失敗しました。保存確認の記録は更新していません：'+e.message;}
+ }else{
+  downloadBackup(file,file.name);
+  const evidence=await markBackupCreated('buyer',createdAt);
+  $('buyerBackupStatus').textContent='通常ダウンロードを開始しました。保存先のファイルを確認してから「保存済みを確認」を押してください。'+(evidence?'':' 補助情報の記録には失敗しました。');
+ }
+}catch(e){$('buyerBackupStatus').textContent='バックアップ停止：'+e.message;}});
 $('buyerImport').addEventListener('click',async()=>{try{const expected=storagePlan.snapshot(BUYER_KEY);
  if(buyerBlocked)throw Error('保存データの異常を検出しています');
  const file=$('buyerImportFile').files?.[0];if(!file)throw Error('台帳JSONを選択してください');if(file.size>1024*1024)throw Error('ファイルが大きすぎます');
@@ -1115,19 +1141,21 @@ const KenshoRelay = (()=>{
   const $=id=>document.getElementById(id);let controller=null,generation=0;
   const staged=new Map(),saved=new Set(),buttons=new Map(),confirming=new Set();
   const status=s=>$('relayStatus').textContent=s;
-  function clear(){generation++;controller?.abort();controller=null;staged.clear();saved.clear();buttons.clear();confirming.clear();$('relayKey').value='';$('relayItems').replaceChildren();$('relayFetch').disabled=false;status('キー・新着を消去しました。入力へ渡した内容は入力欄に残ります。');}
+  const canReceive=()=>adapter.canReceive?.()!==false;
+  function clear(){generation++;controller?.abort();controller=null;staged.clear();saved.clear();buttons.clear();confirming.clear();$('relayKey').value='';$('relayItems').replaceChildren();$('relayFetch').disabled=!canReceive();status('キー・新着を消去しました。入力へ渡した内容は入力欄に残ります。');}
   $('relayForget').addEventListener('click',clear);window.addEventListener('pagehide',clear);
-  for(const id of ['relayBase','relayKey'])$(id).addEventListener('input',()=>{generation++;controller?.abort();staged.clear();saved.clear();buttons.clear();confirming.clear();$('relayItems').replaceChildren();$('relayFetch').disabled=false;status('接続設定が変わりました。再取得してください。');});
+  for(const id of ['relayBase','relayKey'])$(id).addEventListener('input',()=>{generation++;controller?.abort();staged.clear();saved.clear();buttons.clear();confirming.clear();$('relayItems').replaceChildren();$('relayFetch').disabled=!canReceive();status('接続設定が変わりました。再取得してください。');});
   $('relayFetch').addEventListener('click',async()=>{
+   if(!canReceive()){$('relayFetch').disabled=true;status('閲覧専用または変更検知のため取得を停止しています。');return;}
    const current=++generation;controller?.abort();const active=new AbortController();controller=active;
    const timeout=setTimeout(()=>active.abort(),20000);$('relayFetch').disabled=true;$('relayItems').replaceChildren();status('取得中…');
-   try{const items=await pending($('relayBase').value.trim(),$('relayKey').value,active.signal);if(current!==generation)return;
+   try{const items=await pending($('relayBase').value.trim(),$('relayKey').value,active.signal);if(current!==generation||!canReceive())return;
     for(const item of items){const row=document.createElement('div');row.className='check-item item';const label=document.createElement('p');label.textContent=item.product+' / '+item.store+' / '+item.campaign+' / '+(adapter.has(item.url)?'RC2に登録済み':'確認待ち');
      const button=document.createElement('button');button.type='button';button.textContent='この1件を照合画面へ';button.addEventListener('click',()=>{try{if(adapter.stage(item)){staged.set(item.url,item);status('商品・交換先・URLを確認してください。登録は未実行。クラウド新着も保持しています。');}}catch{status('照合画面に反映できませんでした。入力・保存状態を確認してください。');}});const verify=document.createElement('a');verify.href=item.url;verify.target='_blank';verify.rel='noopener noreferrer';verify.referrerPolicy='no-referrer';verify.textContent='URLを開いて入庫前確認';verify.className='reg-inspect-link';row.append(label,verify,document.createTextNode(' '),button);
      if(adapter.savedMatches){
       const ack=document.createElement('button');ack.type='button';ack.textContent='中継への完了通知を再試行';ack.hidden=true;ack.disabled=true;
        async function notifySaved(){
-        if(current!==generation||confirming.has(item.id)||!saved.has(item.id))return;
+        if(!canReceive()){ack.disabled=true;status('閲覧専用または変更検知のため通知を停止しています。');return;}if(current!==generation||confirming.has(item.id)||!saved.has(item.id))return;
         if(!adapter.savedMatches(item)){saved.delete(item.id);ack.hidden=true;ack.disabled=true;adapter.cloudConfirmState?.(item,'review');status('保存済みの商品・交換先が受信内容と一致しません。');return;}
         confirming.add(item.id);ack.disabled=true;ack.hidden=true;adapter.cloudConfirmState?.(item,'pending');
         const tokenGeneration=generation;const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),20000);
@@ -1137,7 +1165,7 @@ const KenshoRelay = (()=>{
          if(tokenGeneration!==generation)return;
          saved.delete(item.id);staged.delete(item.url);buttons.delete(item.id);row.remove();adapter.cloudConfirmState?.(item,'done');status('新着の処理を更新しました。');
         }catch{
-         if(tokenGeneration===generation){ack.hidden=false;ack.disabled=false;adapter.cloudConfirmState?.(item,'failed',notifySaved);status('保存済みデータがあります。在庫一覧からクラウドへ再通知できます。');}
+         if(tokenGeneration===generation){ack.hidden=false;ack.disabled=!canReceive();adapter.cloudConfirmState?.(item,'failed',notifySaved);status('保存済みデータがあります。在庫一覧からクラウドへ再通知できます。');}
         }finally{clearTimeout(timer);confirming.delete(item.id);}
        }
        ack.addEventListener('click',notifySaved);buttons.set(item.id,{button:ack,notifySaved});row.append(ack);
@@ -1146,7 +1174,7 @@ const KenshoRelay = (()=>{
        if(adapter.has(item.url)){
         button.hidden=true;
         if(item.store!=='other'&&adapter.savedMatches(item)){
-         saved.add(item.id);ack.textContent='保存済み：完了通知を再送';ack.hidden=false;ack.disabled=false;
+         saved.add(item.id);ack.textContent='保存済み：完了通知を再送';ack.hidden=false;ack.disabled=!canReceive();
         }else{
          const warning=document.createElement('p');warning.textContent='登録済みですが商品・交換先の一致を確認できません。その他の交換先を含め、手動で確認してください。通知は送信していません。';row.append(warning);
         }
@@ -1154,7 +1182,7 @@ const KenshoRelay = (()=>{
      }
      $('relayItems').append(row);}
     status(items.length+'件取得。1件ずつ照合へ進めます。PCは整理用、在庫・送付管理の正本はRC2です。'+(items.length===200?' 先頭200件です。以降の取得は次段階の対象です。':''));
-   }catch(e){if(current===generation)status(e.message);}finally{clearTimeout(timeout);if(current===generation){$('relayFetch').disabled=false;controller=null;}}
+   }catch(e){if(current===generation)status(e.message);}finally{clearTimeout(timeout);if(current===generation){$('relayFetch').disabled=!canReceive();controller=null;}}
   });
   return {recordSaved(urls){for(const url of urls){const item=staged.get(url);if(item&&adapter.savedMatches?.(item)){saved.add(item.id);adapter.cloudConfirmState?.(item,'pending');const action=buttons.get(item.id);if(action)void action.notifySaved();}}}};
  }
@@ -1162,6 +1190,7 @@ const KenshoRelay = (()=>{
 })();
 
 const relayInbox=KenshoRelay.mount({
+ canReceive:storageWritesAllowed,
  stage(item){
   if(($('urlInput').value||$('newProduct').value)&&!confirm('入力中の内容を新着1件に置き換えますか？'))return false;
   $('newProduct').value=item.product;$('urlInput').value=item.url;
