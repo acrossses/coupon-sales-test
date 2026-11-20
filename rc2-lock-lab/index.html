@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>保存とコピーの単独検証ラボ</title>
+<style>
+:root{color-scheme:light dark}body{font:17px/1.6 system-ui,sans-serif;margin:0;background:#f1f5f4;color:#18332b;padding:16px}main{max-width:760px;margin:auto}section{background:white;padding:20px;margin:16px 0;border-radius:14px;border:1px solid #ccd9d3}h1{font-size:1.5rem}h2{font-size:1.2rem}button,select,textarea{font:inherit;box-sizing:border-box;border-radius:8px;border:1px solid #75998b;padding:12px;max-width:100%}button{background:#23654d;color:white;margin:6px 4px 6px 0;min-height:46px;cursor:pointer}button:disabled{opacity:.45;cursor:default}label{display:block;margin:10px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}textarea{width:100%;min-height:80px}#labStatus{border-left:5px solid #28765b;padding:12px;background:#e8f3ed}dialog{max-width:520px;border:1px solid #75998b;border-radius:12px}dialog::backdrop{background:#0008}.danger{background:#8b433c}small{display:block}a{color:#166347}@media(prefers-color-scheme:dark){body{background:#14231e;color:#edf4f0}section,dialog{background:#20352c;color:#edf4f0}#labStatus{background:#234d3a}a{color:#95dbb7}}
+</style>
+<main>
+<h1>保存とコピーの単独検証ラボ</h1>
+<p>ダミー専用です。本番の在庫・台帳・キーは使いません。外部へのデータ送信はありません。</p>
+<p id="labMode">準備中</p><p id="labStatus" role="status" aria-live="polite">準備中</p>
+<section><h2>1. 準備と競合</h2>
+<button id="initialize">①ダミーを準備</button><button id="reset" class="danger">ラボのダミーだけ初期化</button>
+<p><a href="./" target="_blank" rel="noopener">同じラボをもう1つのタブで開く</a></p>
+<button id="reserve" data-write>ダミー在庫を確保</button><button id="register" data-write>ダミー在庫を1件追加</button>
+<button id="dialog" data-write>確認画面を開く</button><button id="batch" data-write>20回の競合を自動検証</button>
+<button id="race" data-write>2タブ同時確保を予約</button>
+<small>2タブを開いた後、片方で予約を押すと1.5秒後に両方が同じ在庫を確保します。結果は「applied」が1つ、「changed」が1つか確認します。</small>
+<p>試験ID：<span id="raceRun">未実行</span><br>結果：<span id="raceResult">未実行</span></p>
+</section>
+<section><h2>2. コピーと送付確認</h2>
+<label>対象のダミー取引<select id="deal" aria-label="対象のダミー取引"></select></label>
+<label>先行ロックの保持時間<select id="wait"><option value="0">0ms</option><option value="500">500ms</option><option value="2000">2000ms</option><option value="5000">5000ms</option></select></label>
+<button id="copyOne" data-write>保存してコピー（1ボタン）</button>
+<button id="prepare" data-write>①文面を準備（2ボタン）</button><button id="copyTwo" data-write>②固定文面をコピー</button>
+<label>固定文面<textarea id="copyText" readonly></textarea></label>
+<label>コピー結果の貼付確認欄<textarea id="pasteCheck" placeholder="ここに手動で貼り付け、固定文面と同じか確認"></textarea></label>
+<button id="sent" data-write>ダミーを送信済みにする</button><button id="receipt" data-write>模擬の同期受付を反映（500ms待ち）</button>
+<small>コピー先は上の貼付欄だけにしてください。2ボタン方式のコピーは、新しいタップで最新の固定文面を同期的に確認してから行います。</small>
+</section>
+<section><h2>3. 保存失敗と旧版の模擬</h2>
+<label><input id="failWrite" type="checkbox">保存失敗を模擬</label>
+<label><input id="failBackup" type="checkbox">補助情報の保存失敗だけを模擬</label>
+<label><input id="noLocks" type="checkbox">ロック非対応を模擬</label>
+<button id="buyer" data-write>ダミー台帳を保存</button><button id="backup" data-write>台帳の補助情報を保存</button>
+<button id="legacy" data-write class="danger">旧版による識別情報の喪失を模擬</button>
+<small>喪失を模擬したらページを再読込し、「復旧待ち」のままで新IDが作られないことを確認します。初期化はラボの4キーだけを消します。</small>
+</section>
+<section><h2>保存状態</h2><pre id="state"></pre><h2>診断（画面内のみ）</h2><pre id="labLog"></pre></section>
+<dialog id="confirmDialog"><h2>確保の確認</h2><p id="confirmText"></p><button id="confirmYes">確認して適用</button><button id="confirmNo">中止</button></dialog>
+</main><script src="commit-core.js" defer></script>
+</html>
