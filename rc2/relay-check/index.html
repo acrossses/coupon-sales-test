@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src https://kensho-relay.coupon-relay-hub.workers.dev; base-uri 'none'; form-action 'none'">
+<title>本番のダミー送信確認</title>
+<style>
+body{font:18px/1.7 system-ui,sans-serif;color:#20332f;background:#f4f8f6;margin:0;padding:24px}main{max-width:600px;margin:auto;background:white;padding:24px;border-radius:16px}h1{font-size:1.5rem}label{display:block}input,button{box-sizing:border-box;width:100%;font:inherit;padding:14px;margin:10px 0;border:1px solid #8ca99c;border-radius:8px}button{color:white;background:#256953;cursor:pointer}button:disabled{background:#6d7873;cursor:default}#product{font-weight:bold;overflow-wrap:anywhere}#status{min-height:3em}small{display:block}
+</style>
+<main>
+<h1>本番のダミー送信確認</h1>
+<p>確認用のダミー1件を本番の新着に追加します。実際のクーポンは使いません。</p>
+<p>商品名：<span id="product">準備中</span><br>店舗：ファミリーマート</p>
+<form id="sendForm">
+<label for="senderKey">本番の送信キー</label>
+<input id="senderKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="keyHelp">
+<small id="keyHelp">iPhoneなどに保存したSENDER_KEYを直接入力してください。この画面ではキーを保存しません。</small>
+<button id="send" type="submit" disabled>このダミー1件を送信</button>
+</form>
+<p id="status" role="status" aria-live="polite">準備中です。</p>
+<p>結果が分からず再送しても、このブラウザの同じダミーを使います。</p>
+<p>送信後は正式版で新着を取得し、上の商品名だけを確認してください。以前の test-001 は保留のままにします。</p>
+<a href="../">正式版RC2へ戻る</a>
+</main>
+<script src="sender.js"></script>
+</html>
